@@ -27,6 +27,7 @@
 // CTK includes
 #include <ctkPimpl.h>
 #include "ctkCoreExport.h"
+#include "ctkErrorLogLevel.h"
 
 class ctkLoggerPrivate;
 
@@ -42,12 +43,15 @@ public:
   explicit ctkLogger(QString name, QObject* parent = 0);
   virtual ~ctkLogger ();
 
-  void debug(const QString& s);
-  void info(const QString& s);
-  void trace(const QString& s);
-  void warn(const QString& s);
-  void error(const QString& s);
-  void fatal(const QString& s);
+  Q_INVOKABLE void debug(const QString& s);
+  Q_INVOKABLE void info(const QString& s);
+  Q_INVOKABLE void trace(const QString& s);
+  Q_INVOKABLE void warn(const QString& s);
+  Q_INVOKABLE void error(const QString& s);
+  Q_INVOKABLE void fatal(const QString& s);
+
+  Q_INVOKABLE void setLogLevel(const ctkErrorLogLevel::LogLevel& level);
+  Q_INVOKABLE ctkErrorLogLevel::LogLevel logLevel() const;
 
 protected:
   QScopedPointer<ctkLoggerPrivate> d_ptr;

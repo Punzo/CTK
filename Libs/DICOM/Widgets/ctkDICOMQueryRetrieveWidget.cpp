@@ -227,6 +227,7 @@ void ctkDICOMQueryRetrieveWidget::query()
     // create a query for the current server
     ctkDICOMQuery* query = new ctkDICOMQuery;
     d->CurrentQuery = query;
+    query->setConnectionName(parameters["Name"].toString());
     query->setCallingAETitle(d->ServerNodeWidget->callingAETitle());
     query->setCalledAETitle(parameters["AETitle"].toString());
     query->setHost(parameters["Address"].toString());
