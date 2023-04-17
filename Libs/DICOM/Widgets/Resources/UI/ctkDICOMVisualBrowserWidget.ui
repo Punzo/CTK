@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>909</width>
-    <height>525</height>
+    <width>928</width>
+    <height>491</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -21,66 +21,18 @@
     <normaloff>:/Icons/patient.svg</normaloff>:/Icons/patient.svg</iconset>
   </property>
   <property name="styleSheet">
-   <string notr="true">QPushButton {
-border: none;
-padding: 9 px;
-background: transparent;
-font-size: 14pt;
-border-radius: 5px;
-}
-
-QPushButton:hover {
-background-color: rgb(150,150,150);
-}
-
-QPushButton:pressed {
-background-color: rgb(0,100,100);
-}</string>
+   <string notr="true"/>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <widget class="ctkCollapsibleGroupBox" name="SearchPatientsCollapsibleGroupBox">
      <property name="font">
       <font>
-       <pointsize>12</pointsize>
+       <pointsize>11</pointsize>
       </font>
      </property>
      <property name="styleSheet">
-      <string notr="true">QGroupBox {
-border: 2px solid rgb(127,127,127);
-border-radius: 5px;
-}
-QGroupBox::title {
-subcontrol-origin: margin;
-subcontrol-position: top left;
-}
-
-QLineEdit{
-border: 2px solid rgb(127,127,127);
-border-radius: 5px;
-}
-QLineEdit:!focus{
-background: transparent;
-}
-QLineEdit:focus{
-background: white;
-}
-
-QListView{
-border: 2px solid rgb(127,127,127);
-border-radius: 5px;
-background: white;
-}
-
-QComboBox{
-border: 2px solid rgb(127,127,127);
-border-radius: 5px;
-background: transparent;
-}
-
-QComboBox QAbstractItemView {
-selection-background-color: rgb(0,100,100);
-}</string>
+      <string notr="true"/>
      </property>
      <property name="title">
       <string>Patients Search</string>
@@ -147,7 +99,7 @@ selection-background-color: rgb(0,100,100);
             <item>
              <widget class="ctkSearchBox" name="FilteringPatientIDSearchBox">
               <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+               <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
                 <horstretch>0</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
@@ -204,7 +156,7 @@ selection-background-color: rgb(0,100,100);
             <item>
              <widget class="ctkSearchBox" name="FilteringPatientNameSearchBox">
               <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+               <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
                 <horstretch>0</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
@@ -261,7 +213,7 @@ selection-background-color: rgb(0,100,100);
             <item>
              <widget class="ctkSearchBox" name="FilteringStudyDescriptionSearchBox">
               <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+               <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
                 <horstretch>0</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
@@ -318,7 +270,7 @@ selection-background-color: rgb(0,100,100);
             <item>
              <widget class="ctkSearchBox" name="FilteringSeriesDescriptionSearchBox">
               <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+               <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
                 <horstretch>0</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
@@ -602,21 +554,21 @@ selection-background-color: rgb(0,100,100);
           <item>
            <widget class="ctkPushButton" name="QueryPatientPushButton">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
             <property name="minimumSize">
              <size>
-              <width>48</width>
-              <height>48</height>
+              <width>0</width>
+              <height>0</height>
              </size>
             </property>
             <property name="maximumSize">
              <size>
-              <width>48</width>
-              <height>48</height>
+              <width>16777215</width>
+              <height>16777215</height>
              </size>
             </property>
             <property name="toolTip">
@@ -650,10 +602,7 @@ selection-background-color: rgb(0,100,100);
       <enum>Qt::StrongFocus</enum>
      </property>
      <property name="styleSheet">
-      <string notr="true">QPushButton {
-border: 2px solid rgb(127,127,127);
-border-radius: 5px;
-}</string>
+      <string notr="true"/>
      </property>
      <property name="text">
       <string>No filters have been set and no patients have been found in the local database.
@@ -699,49 +648,7 @@ Please set at least one filter to query the servers</string>
    <item>
     <widget class="QTabWidget" name="PatientsTabWidget">
      <property name="styleSheet">
-      <string notr="true">QTabWidget::pane {
-background-color: white; 
-border: 2px solid rgb(127,127,127);
-}
-
-QTabBar::tab {
-height: 30px; 
-font-size: 9pt; 
-border-top: 2px solid rgb(127,127,127);
-border-left: 2px solid rgb(127,127,127);
-border-right: 2px solid rgb(127,127,127);
-padding: 5px;
-}
-QTabBar::tab:!selected {
-background-color: rgb(150,150,150);
-color: black;
-}
-QTabBar::tab:!selected:hover {
-background-color: rgb(100,100,100);
-}
-QTabBar::tab:selected {
-background-color: rgb(0,100,100);
-color: white; 
-}
-
-QTabBar::scroller {
-width: 40px;
-}
-QTabBar QToolButton { 
-background-color: rgb(225,225,225);
-border: 2px solid rgb(127,127,127);
-}
-QTabBar QToolButton:hover {
-background-color: rgb(150,150,150);
-}
-QTabBar QToolButton:pressed {
-background-color: rgb(0,100,100);
-}
-
-
-QTabWidget::tab-bar {
-width: 999999px;
-}</string>
+      <string notr="true"/>
      </property>
      <property name="tabPosition">
       <enum>QTabWidget::North</enum>
@@ -867,10 +774,22 @@ width: 999999px;
    <item>
     <layout class="QHBoxLayout" name="closeHorizontalLayout">
      <item>
-      <widget class="ctkPushButton" name="ImportPushButton">
+      <widget class="QPushButton" name="ImportPushButton">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>0</height>
+        </size>
+       </property>
        <property name="font">
         <font>
-         <pointsize>14</pointsize>
+         <pointsize>11</pointsize>
         </font>
        </property>
        <property name="toolTip">
@@ -878,50 +797,6 @@ width: 999999px;
        </property>
        <property name="text">
         <string>Import</string>
-       </property>
-       <property name="icon">
-        <iconset resource="ctkDICOMWidget.qrc">
-         <normaloff>:/Icons/import.svg</normaloff>:/Icons/import.svg</iconset>
-       </property>
-       <property name="iconSize">
-        <size>
-         <width>32</width>
-         <height>32</height>
-        </size>
-       </property>
-       <property name="flat">
-        <bool>false</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <spacer name="horizontalSpacer_9">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeType">
-        <enum>QSizePolicy::Fixed</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>30</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item>
-      <widget class="ctkPushButton" name="StopPushButton">
-       <property name="font">
-        <font>
-         <pointsize>14</pointsize>
-        </font>
-       </property>
-       <property name="toolTip">
-        <string>Stop all the current DICOM operations.</string>
-       </property>
-       <property name="text">
-        <string>Stop</string>
        </property>
        <property name="icon">
         <iconset resource="ctkDICOMWidget.qrc">
@@ -952,14 +827,26 @@ width: 999999px;
       </spacer>
      </item>
      <item>
-      <widget class="ctkPushButton" name="LoadPushButton">
+      <widget class="QPushButton" name="LoadPushButton">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>0</height>
+        </size>
+       </property>
        <property name="font">
         <font>
-         <pointsize>14</pointsize>
+         <pointsize>11</pointsize>
         </font>
        </property>
        <property name="toolTip">
-        <string>Load all selelcted series for the current selected Patient.</string>
+        <string>Load all selected series for the current Patient.</string>
        </property>
        <property name="text">
         <string>Load</string>
@@ -997,6 +884,26 @@ width: 999999px;
      </item>
      <item>
       <widget class="QPushButton" name="ClosePushButton">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>11</pointsize>
+        </font>
+       </property>
+       <property name="toolTip">
+        <string>Close the DICOM visual browser.</string>
+       </property>
        <property name="text">
         <string>Close</string>
        </property>
@@ -1009,6 +916,9 @@ width: 999999px;
          <width>32</width>
          <height>32</height>
         </size>
+       </property>
+       <property name="flat">
+        <bool>false</bool>
        </property>
       </widget>
      </item>

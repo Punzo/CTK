@@ -217,13 +217,10 @@ void ctkDICOMStudyItemWidgetPrivate::addEmptySeriesItemWidget(const int& rowInde
                                                               const int& columnIndex)
 {
   QTableWidgetItem *tableItem = new QTableWidgetItem;
+  tableItem->setFlags(Qt::NoItemFlags);
   tableItem->setSizeHint(QSize(this->ThumbnailSize, this->ThumbnailSize));
 
   this->SeriesListTableWidget->setItem(rowIndex, columnIndex, tableItem);
-  QLabel *emptyLabel = new QLabel;
-  emptyLabel->setFixedWidth(this->ThumbnailSize);
-  emptyLabel->setFixedHeight(this->ThumbnailSize);
-  this->SeriesListTableWidget->setCellWidget(rowIndex, columnIndex, emptyLabel);
 }
 
 //------------------------------------------------------------------------------

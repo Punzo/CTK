@@ -113,13 +113,6 @@ void ctkDICOMSeriesItemWidgetPrivate::init()
   this->setupUi(q);
 
   this->SeriesThumbnail->setTransformationMode(Qt::TransformationMode::SmoothTransformation);
-  this->SeriesThumbnail->textLabel()->setStyleSheet(
-    ".QLabel{border: 2px dashed rgb(200,200,200); border-radius: 5px;}"
-  );
-
-  this->SeriesThumbnail->pixmapFrame()->setStyleSheet(
-    ".QFrame{border: 2px solid rgb(127,127,127); border-radius: 5px;}"
-  );
 }
 
 //----------------------------------------------------------------------------

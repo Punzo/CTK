@@ -93,17 +93,7 @@
          </size>
         </property>
         <property name="styleSheet">
-         <string notr="true">QProgressBar {
-  border: none;
-  border-radius: 3px;
-  text-align: center;
-  padding: 0px;
-}
-
-QProgressBar::chunk {
-    background-color: #05B8CC;
-    border-radius: 3px; 
-}</string>
+         <string notr="true"/>
         </property>
         <property name="value">
          <number>0</number>
