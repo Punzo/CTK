@@ -2152,7 +2152,7 @@ void ctkDICOMVisualBrowserWidget::onImport()
   if (d->PoolManager->totalTasks() != 0)
     {
     QString warningString = tr("The browser is already fetching/importing data."
-        "\n\n The tasks will be closed. Please wait for the completion of the already running tasks.");
+        "\n\n The queued tasks will be deleted, please wait for the completion of the already running tasks.");
     ctkMessageBox warningMessageBox(this);
     warningMessageBox.setText(warningString);
     warningMessageBox.setIcon(QMessageBox::Warning);
@@ -2160,8 +2160,6 @@ void ctkDICOMVisualBrowserWidget::onImport()
 
     this->onStop();
     }
-
-  d->removeAllPatientItemWidgets();
 
   this->openImportDialog();
 }

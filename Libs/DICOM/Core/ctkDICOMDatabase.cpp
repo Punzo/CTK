@@ -1336,7 +1336,10 @@ void ctkDICOMDatabase::insert(QList<ctkDICOMTaskResults *> taskResults)
     patientName = this->fieldForPatient("PatientsName", patientsUID);
     taskResult->setPatientID(patientID);
 
-    emit progressTaskDetail(taskResult);
+    if (taskResult->typeOfTask() != ctkDICOMTaskResults::FileIndexing)
+      {
+      emit progressTaskDetail(taskResult);
+      }
   }
 
   d->Database.commit();

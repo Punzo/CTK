@@ -38,6 +38,7 @@ class ctkDICOMStudyItemWidget;
 class CTK_DICOM_WIDGETS_EXPORT ctkDICOMPatientItemWidget : public QWidget
 {
   Q_OBJECT;
+  Q_ENUMS(DateType)
   Q_PROPERTY(QString patientItem READ patientItem WRITE setPatientItem);
   Q_PROPERTY(int numberOfSeriesPerRow READ numberOfSeriesPerRow WRITE setNumberOfSeriesPerRow);
 
