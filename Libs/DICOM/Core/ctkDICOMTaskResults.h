@@ -39,6 +39,7 @@ class DcmDataset;
 class CTK_DICOM_CORE_EXPORT ctkDICOMTaskResults : public QObject
 {
   Q_OBJECT
+  Q_ENUMS(TaskType)
   Q_PROPERTY(QString filePath READ filePath WRITE setFilePath);
   Q_PROPERTY(bool copyFile READ copyFile WRITE setCopyFile);
   Q_PROPERTY(bool overwriteExistingDataset READ overwriteExistingDataset WRITE setOverwriteExistingDataset);
