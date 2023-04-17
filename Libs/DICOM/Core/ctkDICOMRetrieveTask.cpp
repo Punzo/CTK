@@ -108,7 +108,7 @@ void ctkDICOMRetrieveTask::setStop(const bool& stop)
 void ctkDICOMRetrieveTask::run()
 {
   Q_D(const ctkDICOMRetrieveTask);
-  if (this->isStopped())
+  if (this->isStopped() or !d->Server)
     {
     this->setIsFinished(true);
     emit canceled();
@@ -120,32 +120,65 @@ void ctkDICOMRetrieveTask::run()
 
   logger.debug("ctkDICOMRetrieveTask : running task on thread id " +
                QString::number(reinterpret_cast<long long>(QThread::currentThreadId()), 16));
-  switch(d->RetrieveLevel)
+  if (d->Server->preferCGET())
     {
-    case DICOMLevel::Studies:
-      if (!d->Retrieve->getStudy(d->StudyInstanceUID))
-        {
-        this->setIsFinished(true);
-        emit canceled();
-        return;
-        }
-      break;
-    case DICOMLevel::Series:
-      if (!d->Retrieve->getSeries(d->StudyInstanceUID, d->SeriesInstanceUID))
-        {
-        this->setIsFinished(true);
-        emit canceled();
-        return;
-        }
-      break;
-    case DICOMLevel::Instances:
-      if (!d->Retrieve->getSOPInstance(d->StudyInstanceUID, d->SeriesInstanceUID, d->SOPInstanceUID))
-        {
-        this->setIsFinished(true);
-        emit canceled();
-        return;
-        }
-      break;
+    switch(d->RetrieveLevel)
+      {
+      case DICOMLevel::Studies:
+        if (!d->Retrieve->getStudy(d->StudyInstanceUID))
+          {
+          this->setIsFinished(true);
+          emit canceled();
+          return;
+          }
+        break;
+      case DICOMLevel::Series:
+        if (!d->Retrieve->getSeries(d->StudyInstanceUID, d->SeriesInstanceUID))
+          {
+          this->setIsFinished(true);
+          emit canceled();
+          return;
+          }
+        break;
+      case DICOMLevel::Instances:
+        if (!d->Retrieve->getSOPInstance(d->StudyInstanceUID, d->SeriesInstanceUID, d->SOPInstanceUID))
+          {
+          this->setIsFinished(true);
+          emit canceled();
+          return;
+          }
+        break;
+      }
+    }
+  else
+    {
+    switch(d->RetrieveLevel)
+      {
+      case DICOMLevel::Studies:
+        if (!d->Retrieve->moveStudy(d->StudyInstanceUID))
+          {
+          this->setIsFinished(true);
+          emit canceled();
+          return;
+          }
+        break;
+      case DICOMLevel::Series:
+        if (!d->Retrieve->moveSeries(d->StudyInstanceUID, d->SeriesInstanceUID))
+          {
+          this->setIsFinished(true);
+          emit canceled();
+          return;
+          }
+        break;
+      case DICOMLevel::Instances:
+        if (!d->Retrieve->moveSOPInstance(d->StudyInstanceUID, d->SeriesInstanceUID, d->SOPInstanceUID))
+          {
+          this->setIsFinished(true);
+          emit canceled();
+          return;
+          }
+        break;
+      }
     }
 
   this->setIsFinished(true);
