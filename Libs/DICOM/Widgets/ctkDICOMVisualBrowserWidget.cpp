@@ -26,6 +26,7 @@
 #include <QDebug>
 #include <QDate>
 #include <QDesktopWidget>
+#include <QFormLayout>
 #include <QMap>
 #include <QMenu>
 #include <QTableWidget>
@@ -37,9 +38,11 @@
 
 // ctkDICOMCore includes
 #include "ctkDICOMDatabase.h"
+#include "ctkDICOMIndexer.h"
 #include "ctkDICOMPoolManager.h"
 #include "ctkDICOMServer.h"
 #include "ctkDICOMTaskResults.h"
+#include "ctkUtils.h"
 
 // ctkDICOMWidgets includes
 #include "ctkDICOMObjectListWidget.h"
@@ -122,6 +125,9 @@ public:
   ~ctkDICOMVisualBrowserWidgetPrivate();
 
   void init();
+  void importDirectory(QString directory, ctkDICOMVisualBrowserWidget::ImportDirectoryMode mode);
+  void importFiles(const QStringList& files, ctkDICOMVisualBrowserWidget::ImportDirectoryMode mode);
+  void importOldSettings();
   void updateModalityCheckableComboBox();
   void updateGUIOnQueryPatient(ctkDICOMTaskResults *taskResults = nullptr);
   void updateFiltersWarnings();
@@ -166,7 +172,26 @@ public:
     return safeStr.trimmed();
   }
 
+  // local count variables to keep track of the number of items
+  // added to the database during an import operation
+  int PatientsAddedDuringImport;
+  int StudiesAddedDuringImport;
+  int SeriesAddedDuringImport;
+  int InstancesAddedDuringImport;
+  bool IsImportFolder;
+  ctkFileDialog* ImportDialog;
+
   QSharedPointer<ctkDICOMMetadataDialog> MetadataDialog;
+
+  // Settings key that stores database directory
+  QString DatabaseDirectorySettingsKey;
+
+  // If database directory is specified with relative path then this directory will be used as a base
+  QString DatabaseDirectoryBase;
+
+  // Default database path to use if there is nothing in settings
+  QString DefaultDatabaseDirectory;
+  QString DatabaseDirectory;
 
   QSharedPointer<ctkDICOMDatabase> DicomDatabase;
   QSharedPointer<ctkDICOMPoolManager> PoolManager;
@@ -185,6 +210,9 @@ public:
   bool SendActionVisible;
 };
 
+CTK_GET_CPP(ctkDICOMVisualBrowserWidget, QString, databaseDirectoryBase, DatabaseDirectoryBase);
+CTK_SET_CPP(ctkDICOMVisualBrowserWidget, const QString&, setDatabaseDirectoryBase, DatabaseDirectoryBase);
+
 //----------------------------------------------------------------------------
 // ctkDICOMVisualBrowserWidgetPrivate methods
 
@@ -193,8 +221,8 @@ ctkDICOMVisualBrowserWidgetPrivate::ctkDICOMVisualBrowserWidgetPrivate(ctkDICOMV
   : q_ptr(&obj)
 {
   this->PoolManager = QSharedPointer<ctkDICOMPoolManager> (new ctkDICOMPoolManager());
-  this->DicomDatabase = nullptr;
-
+  this->DicomDatabase = QSharedPointer<ctkDICOMDatabase> (new ctkDICOMDatabase());
+  this->PoolManager->setDicomDatabase(*this->DicomDatabase);
   this->MetadataDialog = QSharedPointer<ctkDICOMMetadataDialog> (new ctkDICOMMetadataDialog());
   this->MetadataDialog->setObjectName("DICOMMetadata");
   this->MetadataDialog->setWindowTitle(ctkDICOMVisualBrowserWidget::tr("DICOM File Metadata"));
@@ -210,6 +238,13 @@ ctkDICOMVisualBrowserWidgetPrivate::ctkDICOMVisualBrowserWidgetPrivate(ctkDICOMV
   this->FilteringModalities.append("US");
   this->FilteringModalities.append("PT");
   this->FilteringModalities.append("XA");
+
+  this->PatientsAddedDuringImport = 0;
+  this->StudiesAddedDuringImport = 0;
+  this->SeriesAddedDuringImport = 0;
+  this->InstancesAddedDuringImport = 0;
+  this->IsImportFolder = false;
+  this->ImportDialog = nullptr;
 
   this->FilteringDate = ctkDICOMPatientItemWidget::DateType::Any;
 }
@@ -265,6 +300,84 @@ void ctkDICOMVisualBrowserWidgetPrivate::init()
 
   QObject::connect(this->LoadPushButton, SIGNAL(clicked()),
                    q, SLOT(onLoad()));
+
+  QObject::connect(this->ImportPushButton, SIGNAL(clicked()),
+                   q, SLOT(onImport()));
+
+  QObject::connect(this->StopPushButton, SIGNAL(clicked()),
+                   q, SLOT(onStop()));
+
+  // Initialize directoryMode widget
+  QFormLayout *layout = new QFormLayout;
+  QComboBox* importDirectoryModeComboBox = new QComboBox();
+  importDirectoryModeComboBox->addItem(ctkDICOMVisualBrowserWidget::tr("Add Link"), ctkDICOMVisualBrowserWidget::ImportDirectoryAddLink);
+  importDirectoryModeComboBox->addItem(ctkDICOMVisualBrowserWidget::tr("Copy"), ctkDICOMVisualBrowserWidget::ImportDirectoryCopy);
+  importDirectoryModeComboBox->setToolTip(
+        ctkDICOMVisualBrowserWidget::tr("Indicate if the files should be copied to the local database"
+           " directory or if only links should be created ?"));
+  layout->addRow(new QLabel(ctkDICOMVisualBrowserWidget::tr("Import Directory Mode:")), importDirectoryModeComboBox);
+  layout->setContentsMargins(0, 0, 0, 0);
+  QWidget* importDirectoryBottomWidget = new QWidget();
+  importDirectoryBottomWidget->setLayout(layout);
+
+  // Default values
+  importDirectoryModeComboBox->setCurrentIndex(
+        importDirectoryModeComboBox->findData(q->importDirectoryMode()));
+
+  //Initialize import widget
+  this->ImportDialog = new ctkFileDialog();
+  this->ImportDialog->setBottomWidget(importDirectoryBottomWidget);
+  this->ImportDialog->setFileMode(QFileDialog::Directory);
+  // XXX Method setSelectionMode must be called after setFileMode
+  this->ImportDialog->setSelectionMode(QAbstractItemView::ExtendedSelection);
+  this->ImportDialog->setLabelText(QFileDialog::Accept, ctkDICOMVisualBrowserWidget::tr("Import"));
+  this->ImportDialog->setWindowTitle(ctkDICOMVisualBrowserWidget::tr("Import DICOM files from directory ..."));
+  this->ImportDialog->setWindowModality(Qt::ApplicationModal);
+
+  q->connect(this->ImportDialog, SIGNAL(filesSelected(QStringList)),
+             q,SLOT(onImportDirectoriesSelected(QStringList)));
+
+  q->connect(importDirectoryModeComboBox, SIGNAL(currentIndexChanged(int)),
+             q, SLOT(onImportDirectoryComboBoxCurrentIndexChanged(int)));
+
+  this->ProgressFrame->hide();
+
+  q->connect(this->ProgressCancelButton, SIGNAL(clicked()), this->PoolManager->Indexer().data(), SLOT(cancel()));
+  q->connect(this->PoolManager->Indexer().data(), SIGNAL(progress(int)), q, SLOT(onIndexingProgress(int)));
+  q->connect(this->PoolManager->Indexer().data(), SIGNAL(progressStep(QString)), q, SLOT(onIndexingProgressStep(QString)));
+  q->connect(this->PoolManager->Indexer().data(), SIGNAL(progressDetail(QString)), q, SLOT(onIndexingProgressDetail(QString)));
+  q->connect(this->PoolManager->Indexer().data(), SIGNAL(indexingComplete(int,int,int,int)), q, SLOT(onIndexingComplete(int,int,int,int)));
+}
+
+//----------------------------------------------------------------------------
+void ctkDICOMVisualBrowserWidgetPrivate::importDirectory(QString directory, ctkDICOMVisualBrowserWidget::ImportDirectoryMode mode)
+{
+  if (!QDir(directory).exists())
+    {
+    return;
+    }
+  // Start background indexing
+  this->PoolManager->Indexer()->addDirectory(directory, mode == ctkDICOMVisualBrowserWidget::ImportDirectoryCopy);
+}
+
+//----------------------------------------------------------------------------
+void ctkDICOMVisualBrowserWidgetPrivate::importFiles(const QStringList &files, ctkDICOMVisualBrowserWidget::ImportDirectoryMode mode)
+{
+  // Start background indexing
+  this->PoolManager->Indexer()->addListOfFiles(files, mode == ctkDICOMVisualBrowserWidget::ImportDirectoryCopy);
+}
+
+//----------------------------------------------------------------------------
+void ctkDICOMVisualBrowserWidgetPrivate::importOldSettings()
+{
+  // Backward compatibility
+  QSettings settings;
+  int dontConfirmCopyOnImport = settings.value("MainWindow/DontConfirmCopyOnImport", static_cast<int>(QMessageBox::InvalidRole)).toInt();
+  if (dontConfirmCopyOnImport == QMessageBox::AcceptRole)
+  {
+    settings.setValue("DICOM/ImportDirectoryMode", static_cast<int>(ctkDICOMVisualBrowserWidget::ImportDirectoryCopy));
+  }
+  settings.remove("MainWindow/DontConfirmCopyOnImport");
 }
 
 //----------------------------------------------------------------------------
@@ -351,10 +464,6 @@ void ctkDICOMVisualBrowserWidgetPrivate::updateGUIOnQueryPatient(ctkDICOMTaskRes
 {
   Q_Q(ctkDICOMVisualBrowserWidget);
 
-  if (!this->DicomDatabase)
-    {
-    return;
-    }
 
   QStringList patientList = this->DicomDatabase->patients();
   if (patientList.count() == 0)
@@ -371,11 +480,6 @@ void ctkDICOMVisualBrowserWidgetPrivate::updateGUIOnQueryPatient(ctkDICOMTaskRes
     {
     QString patientID = this->DicomDatabase->fieldForPatient("PatientID", patientItem);
     QString patientName = this->DicomDatabase->fieldForPatient("PatientsName", patientItem);
-    if (taskResults && patientID != taskResults->patientID())
-      {
-      continue;
-      }
-
     if (taskResults)
       {
       this->PoolManager->deleteTask(taskResults->taskUID(), taskResults);
@@ -406,12 +510,6 @@ void ctkDICOMVisualBrowserWidgetPrivate::updateFiltersWarnings()
 {
   // Loop over all the data in the dicom database and apply the filters.
   // If there are no series, highlight which are the filters that produce no results
-  QStringList patientList = this->DicomDatabase->patients();
-  if (patientList.count() == 0)
-    {
-    return;
-    }
-
   QPalette pal = QPalette();
   pal.setColor(QPalette::Window, Qt::transparent);
   pal.setColor(QPalette::Base, Qt::transparent);
@@ -432,6 +530,14 @@ void ctkDICOMVisualBrowserWidgetPrivate::updateFiltersWarnings()
 
   pal.setColor(QPalette::Window, Qt::yellow);
   pal.setColor(QPalette::Base, Qt::yellow);
+
+  QStringList patientList = this->DicomDatabase->patients();
+  if (patientList.count() == 0)
+    {
+    this->FilteringPatientNameSearchBox->setPalette(pal);
+    this->FilteringPatientIDSearchBox->setPalette(pal);
+    return;
+    }
 
   QStringList filteredPatientListByName =
     this->filterPatientList(patientList, "PatientsName", this->FilteringPatientName);
@@ -743,11 +849,30 @@ ctkDICOMVisualBrowserWidget::~ctkDICOMVisualBrowserWidget()
 }
 
 //----------------------------------------------------------------------------
-static void skipDelete(QObject* obj)
+QString ctkDICOMVisualBrowserWidget::databaseDirectory() const
 {
-  Q_UNUSED(obj);
-  // this deleter does not delete the object from memory
-  // useful if the pointer is not owned by the smart pointer
+  Q_D(const ctkDICOMVisualBrowserWidget);
+
+  // If override settings is specified then try to get database directory from there first
+  return d->DatabaseDirectory;
+}
+
+//----------------------------------------------------------------------------
+QString ctkDICOMVisualBrowserWidget::databaseDirectorySettingsKey() const
+{
+  Q_D(const ctkDICOMVisualBrowserWidget);
+  return d->DatabaseDirectorySettingsKey;
+}
+
+//----------------------------------------------------------------------------
+void ctkDICOMVisualBrowserWidget::setDatabaseDirectorySettingsKey(const QString &key)
+{
+  Q_D(ctkDICOMVisualBrowserWidget);
+  d->DatabaseDirectorySettingsKey = key;
+
+  QSettings settings;
+  QString databaseDirectory = ctk::absolutePathFromInternal(settings.value(d->DatabaseDirectorySettingsKey, "").toString(), d->DatabaseDirectoryBase);
+  this->setDatabaseDirectory(databaseDirectory);
 }
 
 //----------------------------------------------------------------------------
@@ -755,14 +880,6 @@ ctkDICOMDatabase* ctkDICOMVisualBrowserWidget::dicomDatabase()const
 {
   Q_D(const ctkDICOMVisualBrowserWidget);
   return d->DicomDatabase.data();
-}
-
-//----------------------------------------------------------------------------
-void ctkDICOMVisualBrowserWidget::setDicomDatabase(ctkDICOMDatabase& dicomDatabase)
-{
-  Q_D(ctkDICOMVisualBrowserWidget);
-  d->DicomDatabase = QSharedPointer<ctkDICOMDatabase>(&dicomDatabase, skipDelete);
-  d->PoolManager->setDicomDatabase(*d->DicomDatabase);
 }
 
 //----------------------------------------------------------------------------
@@ -998,7 +1115,278 @@ void ctkDICOMVisualBrowserWidget::removePatientItemWidget(const QString &patient
                      this, SLOT(showPatientContextMenu(const QPoint&)));
     delete patientItemWidget;
     break;
+  }
+}
+
+//------------------------------------------------------------------------------
+int ctkDICOMVisualBrowserWidget::patientsAddedDuringImport()
+{
+  Q_D(ctkDICOMVisualBrowserWidget);
+  return d->PatientsAddedDuringImport;
+}
+
+//------------------------------------------------------------------------------
+int ctkDICOMVisualBrowserWidget::studiesAddedDuringImport()
+{
+  Q_D(ctkDICOMVisualBrowserWidget);
+  return d->StudiesAddedDuringImport;
+}
+
+//------------------------------------------------------------------------------
+int ctkDICOMVisualBrowserWidget::seriesAddedDuringImport()
+{
+  Q_D(ctkDICOMVisualBrowserWidget);
+  return d->SeriesAddedDuringImport;
+}
+
+//------------------------------------------------------------------------------
+int ctkDICOMVisualBrowserWidget::instancesAddedDuringImport()
+{
+  Q_D(ctkDICOMVisualBrowserWidget);
+  return d->InstancesAddedDuringImport;
+}
+
+//------------------------------------------------------------------------------
+void ctkDICOMVisualBrowserWidget::resetItemsAddedDuringImportCounters()
+{
+  Q_D(ctkDICOMVisualBrowserWidget);
+  d->PatientsAddedDuringImport = 0;
+  d->StudiesAddedDuringImport = 0;
+  d->SeriesAddedDuringImport = 0;
+  d->InstancesAddedDuringImport = 0;
+}
+
+//------------------------------------------------------------------------------
+ctkDICOMVisualBrowserWidget::ImportDirectoryMode ctkDICOMVisualBrowserWidget::importDirectoryMode() const
+{
+  Q_D(const ctkDICOMVisualBrowserWidget);
+  ctkDICOMVisualBrowserWidgetPrivate* mutable_d = const_cast<ctkDICOMVisualBrowserWidgetPrivate*>(d);
+  mutable_d->importOldSettings();
+  QSettings settings;
+  return static_cast<ctkDICOMVisualBrowserWidget::ImportDirectoryMode>(settings.value(
+    "DICOM/ImportDirectoryMode", static_cast<int>(ctkDICOMVisualBrowserWidget::ImportDirectoryAddLink)).toInt() );
+}
+
+//------------------------------------------------------------------------------
+ctkFileDialog *ctkDICOMVisualBrowserWidget::importDialog() const
+{
+  Q_D(const ctkDICOMVisualBrowserWidget);
+  return d->ImportDialog;
+}
+
+//------------------------------------------------------------------------------
+void ctkDICOMVisualBrowserWidget::setImportDirectoryMode(ImportDirectoryMode mode)
+{
+  Q_D(ctkDICOMVisualBrowserWidget);
+
+  QSettings settings;
+  settings.setValue("DICOM/ImportDirectoryMode", static_cast<int>(mode));
+  if (!d->ImportDialog)
+    {
+    return;
     }
+  if (!(d->ImportDialog->options() & QFileDialog::DontUseNativeDialog))
+    {
+    return;  // Native dialog does not support modifying or getting widget elements.
+    }
+  QComboBox* comboBox = d->ImportDialog->bottomWidget()->findChild<QComboBox*>();
+  comboBox->setCurrentIndex(comboBox->findData(mode));
+}
+
+//------------------------------------------------------------------------------
+void ctkDICOMVisualBrowserWidget::setDatabaseDirectory(const QString &directory)
+{
+  Q_D(ctkDICOMVisualBrowserWidget);
+
+  QString absDirectory = ctk::absolutePathFromInternal(directory, d->DatabaseDirectoryBase);
+
+  // close the active DICOM database
+  d->DicomDatabase->closeDatabase();
+
+  // open DICOM database on the directory
+  QString databaseFileName = QDir(absDirectory).filePath("ctkDICOM.sql");
+
+  bool success = true;
+  if (!QDir(absDirectory).exists()
+    || (!QDir(absDirectory).isEmpty() && !QFile(databaseFileName).exists()))
+    {
+    logger.warn(tr("Database folder does not contain ctkDICOM.sql file: ") + absDirectory + "\n");
+    success = false;
+    }
+
+  if (success)
+    {
+    bool databaseOpenSuccess = false;
+    try
+      {
+      d->DicomDatabase->openDatabase(databaseFileName);
+      databaseOpenSuccess = d->DicomDatabase->isOpen();
+      }
+    catch (std::exception e)
+      {
+      databaseOpenSuccess = false;
+      }
+    if (!databaseOpenSuccess || d->DicomDatabase->schemaVersionLoaded().isEmpty())
+      {
+      logger.warn(tr("Database error: ") + d->DicomDatabase->lastError() + "\n");
+      d->DicomDatabase->closeDatabase();
+      success = false;
+      }
+    }
+
+  if (success)
+    {
+    if (d->DicomDatabase->schemaVersionLoaded() != d->DicomDatabase->schemaVersion())
+      {
+      logger.warn(tr("Database version mismatch: version of selected database = ") +
+                  d->DicomDatabase->schemaVersionLoaded() +
+                  ", version required = " +
+                  d->DicomDatabase->schemaVersion() +
+                  "\n");
+      d->DicomDatabase->closeDatabase();
+      success = false;
+      }
+    }
+
+  // Save new database directory in this object and in application settings.
+  d->DatabaseDirectory = absDirectory;
+  if (!d->DatabaseDirectorySettingsKey.isEmpty())
+    {
+    QSettings settings;
+    settings.setValue(d->DatabaseDirectorySettingsKey, ctk::internalPathFromAbsolute(absDirectory, d->DatabaseDirectoryBase));
+    settings.sync();
+    }
+
+  // pass DICOM database instance to Import widget
+  emit databaseDirectoryChanged(absDirectory);
+}
+
+//------------------------------------------------------------------------------
+void ctkDICOMVisualBrowserWidget::openImportDialog()
+{
+  Q_D(ctkDICOMVisualBrowserWidget);
+  d->ImportDialog->exec();
+}
+
+//------------------------------------------------------------------------------
+void ctkDICOMVisualBrowserWidget::importDirectories(QStringList directories, ImportDirectoryMode mode)
+{
+  Q_D(ctkDICOMVisualBrowserWidget);
+  if (!d->DicomDatabase || !d->PoolManager->Indexer())
+    {
+    qWarning() << Q_FUNC_INFO << " failed: database or indexer is invalid";
+    return;
+    }
+  foreach (const QString& directory, directories)
+    {
+    d->importDirectory(directory, mode);
+    }
+}
+
+//------------------------------------------------------------------------------
+void ctkDICOMVisualBrowserWidget::importDirectory(QString directory, ImportDirectoryMode mode)
+{
+  Q_D(ctkDICOMVisualBrowserWidget);
+  d->importDirectory(directory, mode);
+}
+
+//------------------------------------------------------------------------------
+void ctkDICOMVisualBrowserWidget::importFiles(const QStringList &files, ImportDirectoryMode mode)
+{
+  Q_D(ctkDICOMVisualBrowserWidget);
+  if (!d->DicomDatabase || !d->PoolManager->Indexer())
+    {
+    qWarning() << Q_FUNC_INFO << " failed: database or indexer is invalid";
+    return;
+    }
+  d->importFiles(files, mode);
+}
+
+//------------------------------------------------------------------------------
+void ctkDICOMVisualBrowserWidget::waitForImportFinished()
+{
+  Q_D(ctkDICOMVisualBrowserWidget);
+  if (!d->PoolManager->Indexer())
+    {
+    qWarning() << Q_FUNC_INFO << " failed: indexer is invalid";
+    return;
+    }
+  d->PoolManager->Indexer()->waitForImportFinished();
+}
+
+//------------------------------------------------------------------------------
+void ctkDICOMVisualBrowserWidget::onImportDirectory(QString directory, ImportDirectoryMode mode)
+{
+  this->importDirectory(directory, mode);
+}
+
+//------------------------------------------------------------------------------
+void ctkDICOMVisualBrowserWidget::onIndexingProgress(int percent)
+{
+  Q_D(const ctkDICOMVisualBrowserWidget);
+  if (!d->IsImportFolder)
+    {
+    return;
+    }
+
+  d->ProgressFrame->show();
+  d->ProgressBar->setValue(percent);
+}
+
+//------------------------------------------------------------------------------
+void ctkDICOMVisualBrowserWidget::onIndexingProgressStep(const QString & step)
+{
+  Q_D(const ctkDICOMVisualBrowserWidget);
+  if (!d->IsImportFolder)
+    {
+    return;
+    }
+
+  d->ProgressLabel->setText(step);
+}
+
+//------------------------------------------------------------------------------
+void ctkDICOMVisualBrowserWidget::onIndexingProgressDetail(const QString & detail)
+{
+  Q_D(const ctkDICOMVisualBrowserWidget);
+  if (!d->IsImportFolder)
+    {
+    return;
+    }
+
+  if (detail.isEmpty())
+    {
+    d->ProgressDetailLineEdit->hide();
+    }
+  else
+    {
+    d->ProgressDetailLineEdit->setText(detail);
+    d->ProgressDetailLineEdit->show();
+    }
+}
+
+//------------------------------------------------------------------------------
+void ctkDICOMVisualBrowserWidget::onIndexingComplete(int patientsAdded, int studiesAdded, int seriesAdded, int imagesAdded)
+{
+  Q_D(ctkDICOMVisualBrowserWidget);
+  if (!d->IsImportFolder)
+    {
+    return;
+    }
+
+  d->PatientsAddedDuringImport += patientsAdded;
+  d->StudiesAddedDuringImport += studiesAdded;
+  d->SeriesAddedDuringImport += seriesAdded;
+  d->InstancesAddedDuringImport += imagesAdded;
+
+  d->ProgressFrame->hide();
+  d->ProgressDetailLineEdit->hide();
+
+  // allow users of this widget to know that the process has finished
+  emit directoryImported();
+  d->IsImportFolder = false;
+
+  this->onQueryPatient(false);
 }
 
 //------------------------------------------------------------------------------
@@ -1212,7 +1600,7 @@ void ctkDICOMVisualBrowserWidget::onFilteringDateComboBoxChanged(int index)
 }
 
 //------------------------------------------------------------------------------
-void ctkDICOMVisualBrowserWidget::onQueryPatient()
+void ctkDICOMVisualBrowserWidget::onQueryPatient(bool forcefiltersEmpty)
 {
   Q_D(ctkDICOMVisualBrowserWidget);
 
@@ -1230,6 +1618,8 @@ void ctkDICOMVisualBrowserWidget::onQueryPatient()
     d->FilteringSeriesDescription.isEmpty() &&
     d->FilteringDate == ctkDICOMPatientItemWidget::DateType::Any &&
     d->FilteringModalities.contains("Any");
+
+  filtersEmpty = forcefiltersEmpty ? forcefiltersEmpty : filtersEmpty;
 
   if (d->DicomDatabase->patients().count() == 0 &&
       filtersEmpty)
@@ -1269,8 +1659,7 @@ void ctkDICOMVisualBrowserWidget::onQueryPatient()
     }
   else if (d->PoolManager->getNumberOfServers() > 0)
     {
-    d->PoolManager->stopAllTasksNotStarted();
-    d->PoolManager->waitForDone(300);
+    this->onStop();
 
     QMap<QString, QVariant> parameters;
     parameters["Name"] = d->FilteringPatientName;
@@ -1714,7 +2103,33 @@ void ctkDICOMVisualBrowserWidget::exportSeries(QString dirPath, QStringList uids
 
       fileNumber++;
       }
+  }
+}
+
+//------------------------------------------------------------------------------
+void ctkDICOMVisualBrowserWidget::onImportDirectoriesSelected(QStringList directories)
+{
+  Q_D(ctkDICOMVisualBrowserWidget);
+  d->IsImportFolder = true;
+  this->importDirectories(directories, this->importDirectoryMode());
+
+  // Clear selection
+  d->ImportDialog->clearSelection();
+}
+
+//------------------------------------------------------------------------------
+void ctkDICOMVisualBrowserWidget::onImportDirectoryComboBoxCurrentIndexChanged(int index)
+{
+  Q_D(ctkDICOMVisualBrowserWidget);
+  Q_UNUSED(index);
+  if (!(d->ImportDialog->options() & QFileDialog::DontUseNativeDialog))
+    {
+    return;  // Native dialog does not support modifying or getting widget elements.
     }
+  QComboBox* comboBox = d->ImportDialog->bottomWidget()->findChild<QComboBox*>();
+  ctkDICOMVisualBrowserWidget::ImportDirectoryMode mode =
+      static_cast<ctkDICOMVisualBrowserWidget::ImportDirectoryMode>(comboBox->itemData(index).toInt());
+  this->setImportDirectoryMode(mode);
 }
 
 //------------------------------------------------------------------------------
@@ -1731,11 +2146,42 @@ void ctkDICOMVisualBrowserWidget::onLoad()
 }
 
 //------------------------------------------------------------------------------
+void ctkDICOMVisualBrowserWidget::onImport()
+{
+  Q_D(ctkDICOMVisualBrowserWidget);
+  if (d->PoolManager->totalTasks() != 0)
+    {
+    QString warningString = tr("The browser is already fetching/importing data."
+        "\n\n The tasks will be closed. Please wait for the completion of the already running tasks.");
+    ctkMessageBox warningMessageBox(this);
+    warningMessageBox.setText(warningString);
+    warningMessageBox.setIcon(QMessageBox::Warning);
+    warningMessageBox.exec();
+
+    this->onStop();
+    }
+
+  d->removeAllPatientItemWidgets();
+
+  this->openImportDialog();
+}
+
+//------------------------------------------------------------------------------
+void ctkDICOMVisualBrowserWidget::onStop()
+{
+  Q_D(ctkDICOMVisualBrowserWidget);
+
+  QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
+  d->PoolManager->stopAllTasksNotStarted();
+  d->PoolManager->waitForDone(300);
+  QApplication::restoreOverrideCursor();
+}
+
+//------------------------------------------------------------------------------
 void ctkDICOMVisualBrowserWidget::closeEvent(QCloseEvent *event)
 {
   Q_D(ctkDICOMVisualBrowserWidget);
-  d->PoolManager->stopAllTasksNotStarted();
-  d->PoolManager->waitForDone(300);
+  this->onStop();
   event->accept();
 }
 

@@ -412,7 +412,7 @@ void ctkDICOMPoolManager::waitForFinish(int msecs)
     QCoreApplication::processEvents();
     this->waitForDone(msecs);
     numberOfTasks = d->Tasks.count();
-  }
+    }
 }
 
 //----------------------------------------------------------------------------
