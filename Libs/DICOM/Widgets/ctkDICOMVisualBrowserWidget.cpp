@@ -304,9 +304,6 @@ void ctkDICOMVisualBrowserWidgetPrivate::init()
   QObject::connect(this->ImportPushButton, SIGNAL(clicked()),
                    q, SLOT(onImport()));
 
-  QObject::connect(this->StopPushButton, SIGNAL(clicked()),
-                   q, SLOT(onStop()));
-
   // Initialize directoryMode widget
   QFormLayout *layout = new QFormLayout;
   QComboBox* importDirectoryModeComboBox = new QComboBox();
@@ -510,32 +507,20 @@ void ctkDICOMVisualBrowserWidgetPrivate::updateFiltersWarnings()
 {
   // Loop over all the data in the dicom database and apply the filters.
   // If there are no series, highlight which are the filters that produce no results
-  QPalette pal = QPalette();
-  pal.setColor(QPalette::Window, Qt::transparent);
-  pal.setColor(QPalette::Base, Qt::transparent);
+  QString background = "QWidget { background-color: white }";
+  this->FilteringPatientIDSearchBox->setStyleSheet(this->FilteringPatientIDSearchBox->styleSheet() + background);
+  this->FilteringPatientNameSearchBox->setStyleSheet(this->FilteringPatientNameSearchBox->styleSheet() + background);
+  this->FilteringDateComboBox->setStyleSheet(this->FilteringDateComboBox->styleSheet() + background);
+  this->FilteringStudyDescriptionSearchBox->setStyleSheet(this->FilteringStudyDescriptionSearchBox->styleSheet() + background);
+  this->FilteringSeriesDescriptionSearchBox->setStyleSheet(this->FilteringSeriesDescriptionSearchBox->styleSheet() + background);
+  this->FilteringModalityCheckableComboBox->setStyleSheet(this->FilteringModalityCheckableComboBox->styleSheet() + background);
 
-  this->FilteringPatientIDSearchBox->setAutoFillBackground(true);
-  this->FilteringPatientNameSearchBox->setAutoFillBackground(true);
-  this->FilteringStudyDescriptionSearchBox->setAutoFillBackground(true);
-  this->FilteringSeriesDescriptionSearchBox->setAutoFillBackground(true);
-  this->FilteringModalityCheckableComboBox->setAutoFillBackground(true);
-  this->FilteringDateComboBox->setAutoFillBackground(true);
-
-  this->FilteringPatientIDSearchBox->setPalette(pal);
-  this->FilteringPatientNameSearchBox->setPalette(pal);
-  this->FilteringDateComboBox->setPalette(pal);
-  this->FilteringStudyDescriptionSearchBox->setPalette(pal);
-  this->FilteringSeriesDescriptionSearchBox->setPalette(pal);
-  this->FilteringModalityCheckableComboBox->setPalette(pal);
-
-  pal.setColor(QPalette::Window, Qt::yellow);
-  pal.setColor(QPalette::Base, Qt::yellow);
-
+  background = "QWidget { background-color: yellow }";
   QStringList patientList = this->DicomDatabase->patients();
   if (patientList.count() == 0)
     {
-    this->FilteringPatientNameSearchBox->setPalette(pal);
-    this->FilteringPatientIDSearchBox->setPalette(pal);
+    this->FilteringPatientIDSearchBox->setStyleSheet(this->FilteringPatientIDSearchBox->styleSheet() + background);
+    this->FilteringPatientNameSearchBox->setStyleSheet(this->FilteringPatientNameSearchBox->styleSheet() + background);
     return;
     }
 
@@ -546,12 +531,12 @@ void ctkDICOMVisualBrowserWidgetPrivate::updateFiltersWarnings()
 
   if (filteredPatientListByName.count() == 0)
     {
-    this->FilteringPatientNameSearchBox->setPalette(pal);
+    this->FilteringPatientNameSearchBox->setStyleSheet(this->FilteringPatientNameSearchBox->styleSheet() + background);
     }
 
   if (filteredPatientListByID.count() == 0)
     {
-    this->FilteringPatientIDSearchBox->setPalette(pal);
+    this->FilteringPatientIDSearchBox->setStyleSheet(this->FilteringPatientIDSearchBox->styleSheet() + background);
     }
 
   QStringList filteredPatientList = filteredPatientListByName + filteredPatientListByID;
@@ -574,12 +559,12 @@ void ctkDICOMVisualBrowserWidgetPrivate::updateFiltersWarnings()
 
   if (filteredStudyListByDate.count() == 0)
     {
-    this->FilteringDateComboBox->setPalette(pal);
+     this->FilteringDateComboBox->setStyleSheet(this->FilteringDateComboBox->styleSheet() + background);
     }
 
   if (filteredStudyListByDescription.count() == 0)
     {
-    this->FilteringStudyDescriptionSearchBox->setPalette(pal);
+    this->FilteringStudyDescriptionSearchBox->setStyleSheet(this->FilteringStudyDescriptionSearchBox->styleSheet() + background);
     }
 
   QStringList filteredStudyList = filteredStudyListByDate + filteredStudyListByDescription;
@@ -602,12 +587,12 @@ void ctkDICOMVisualBrowserWidgetPrivate::updateFiltersWarnings()
 
   if (filteredSeriesListByModality.count() == 0)
     {
-    this->FilteringModalityCheckableComboBox->setPalette(pal);
+    this->FilteringModalityCheckableComboBox->setStyleSheet(this->FilteringModalityCheckableComboBox->styleSheet() + background);
     }
 
   if (filteredSeriesListByDescription.count() == 0)
     {
-    this->FilteringSeriesDescriptionSearchBox->setPalette(pal);
+    this->FilteringSeriesDescriptionSearchBox->setStyleSheet(this->FilteringSeriesDescriptionSearchBox->styleSheet() + background);
     }
 }
 
@@ -1624,23 +1609,13 @@ void ctkDICOMVisualBrowserWidget::onQueryPatient(bool forcefiltersEmpty)
   if (d->DicomDatabase->patients().count() == 0 &&
       filtersEmpty)
     {
-    QPalette pal = QPalette();
-    pal.setColor(QPalette::Window, Qt::yellow);
-    pal.setColor(QPalette::Base, Qt::yellow);
-
-    d->FilteringPatientIDSearchBox->setAutoFillBackground(true);
-    d->FilteringPatientNameSearchBox->setAutoFillBackground(true);
-    d->FilteringStudyDescriptionSearchBox->setAutoFillBackground(true);
-    d->FilteringSeriesDescriptionSearchBox->setAutoFillBackground(true);
-    d->FilteringModalityCheckableComboBox->setAutoFillBackground(true);
-    d->FilteringDateComboBox->setAutoFillBackground(true);
-
-    d->FilteringPatientIDSearchBox->setPalette(pal);
-    d->FilteringPatientNameSearchBox->setPalette(pal);
-    d->FilteringDateComboBox->setPalette(pal);
-    d->FilteringStudyDescriptionSearchBox->setPalette(pal);
-    d->FilteringSeriesDescriptionSearchBox->setPalette(pal);
-    d->FilteringModalityCheckableComboBox->setPalette(pal);
+    QString background = "QWidget { background-color: yellow }";
+    d->FilteringPatientIDSearchBox->setStyleSheet(d->FilteringPatientIDSearchBox->styleSheet() + background);
+    d->FilteringPatientNameSearchBox->setStyleSheet(d->FilteringPatientNameSearchBox->styleSheet() + background);
+    d->FilteringDateComboBox->setStyleSheet(d->FilteringDateComboBox->styleSheet() + background);
+    d->FilteringStudyDescriptionSearchBox->setStyleSheet(d->FilteringStudyDescriptionSearchBox->styleSheet() + background);
+    d->FilteringSeriesDescriptionSearchBox->setStyleSheet(d->FilteringSeriesDescriptionSearchBox->styleSheet() + background);
+    d->FilteringModalityCheckableComboBox->setStyleSheet(d->FilteringModalityCheckableComboBox->styleSheet() + background);
 
     d->WarningPushButton->setText("No filters have been set and no patients have been found in the local database."
                                   "\nPlease set at least one filter to query the servers");

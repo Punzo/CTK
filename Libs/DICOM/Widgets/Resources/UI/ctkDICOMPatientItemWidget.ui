@@ -23,41 +23,7 @@
       </sizepolicy>
      </property>
      <property name="styleSheet">
-      <string notr="true">.QFrame{
-  background-color : white; 
-  border: none; 
-}
-
-QScrollBar:vertical {             
-        border: none;
-        width: 20px;
-        margin: 0px 0px 0px 0px;
-        background-color: white; 
-    }
-QScrollBar::handle:vertical {
-        min-height: 30px;
-        margin: 0px 4px 0px 4px;
-        width: 10px;
-        border-width: 1px;
-        border-radius: 5px;
-        background-color: rgb(200, 200, 200);
-    }
-QScrollBar::handle:vertical:hover {
-        background-color: rgb(150, 150, 150);
-    }
-QScrollBar::handle:vertical:pressed {
-        background-color: rgb(0, 100, 100);
-    }
-QScrollBar::add-line:vertical {
-        height: 0px;
-        subcontrol-position: bottom;
-        subcontrol-origin: margin;
-    }
-QScrollBar::sub-line:vertical {
-        height: 0 px;
-        subcontrol-position: top;
-        subcontrol-origin: margin;
-    }</string>
+      <string notr="true"/>
      </property>
      <property name="frameShape">
       <enum>QFrame::StyledPanel</enum>
@@ -89,14 +55,7 @@ QScrollBar::sub-line:vertical {
          </font>
         </property>
         <property name="styleSheet">
-         <string notr="true">QGroupBox {
-border: 3px dashed rgb(200,200,200);
-border-radius: 5px;
-}
-QGroupBox::title {
-subcontrol-origin: margin;
-subcontrol-position: top left;
-}</string>
+         <string notr="true"/>
         </property>
         <property name="title">
          <string>Patient Information</string>
@@ -352,8 +311,8 @@ subcontrol-position: top left;
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>981</width>
-           <height>173</height>
+           <width>982</width>
+           <height>145</height>
           </rect>
          </property>
          <property name="styleSheet">

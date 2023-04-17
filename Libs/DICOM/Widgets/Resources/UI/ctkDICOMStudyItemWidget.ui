@@ -14,7 +14,7 @@
    <string>Study Item</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">background-color: rgb(255, 255, 255);</string>
+   <string notr="true"/>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
@@ -37,14 +37,7 @@
       </font>
      </property>
      <property name="styleSheet">
-      <string notr="true">QGroupBox {
-border: 2px solid rgb(127,127,127);
-border-radius: 5px;
-}
-QGroupBox::title {
-subcontrol-origin: margin;
-subcontrol-position: top left;
-}</string>
+      <string notr="true"/>
      </property>
      <property name="title">
       <string>Study ID 1234 --- Date</string>
@@ -72,10 +65,7 @@ subcontrol-position: top left;
       <item>
        <widget class="ctkFittedTextBrowser" name="StudyDescriptionTextBrowser">
         <property name="styleSheet">
-         <string notr="true">QTextEdit{
-border: 2px dashed rgb(200,200,200);
-border-radius: 5px;
-}</string>
+         <string notr="true"/>
         </property>
         <property name="html">
          <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
@@ -95,40 +85,7 @@ p, li { white-space: pre-wrap; }
          </sizepolicy>
         </property>
         <property name="styleSheet">
-         <string notr="true">QTableWidget::item{ 
-selection-background-color: rgb(0,100,100);
-}
-
-QScrollBar:horizontal {             
-        border: none;
-        height: 10px;
-        margin: 0px 0px 0px 0px;
-        background-color: white; 
-    }
-QScrollBar::handle:horizontal {
-        min-width: 30px;
-        margin: 0px 4px 0px 4px;
-        height: 10px;
-        border-width: 1px;
-        border-radius: 5px;
-        background-color: rgb(200, 200, 200);
-    }
-QScrollBar::handle:horizontal:hover {
-        background-color: rgb(150, 150, 150);
-    }
-QScrollBar::handle:horizontal:pressed {
-        background-color: rgb(0, 100, 100);
-    }
-QScrollBar::add-line:horizontal {
-        width: 0px;
-        subcontrol-position: right;
-        subcontrol-origin: margin;
-    }
-QScrollBar::sub-line:horizontal {
-        width: 0 px;
-        subcontrol-position: left;
-        subcontrol-origin: margin;
-    }</string>
+         <string notr="true"/>
         </property>
         <property name="frameShape">
          <enum>QFrame::NoFrame</enum>

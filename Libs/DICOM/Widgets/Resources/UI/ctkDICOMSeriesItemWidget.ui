@@ -23,9 +23,7 @@
       </sizepolicy>
      </property>
      <property name="styleSheet">
-      <string notr="true">.QFrame{
-border: none;
-}</string>
+      <string notr="true"/>
      </property>
      <property name="frameShadow">
       <enum>QFrame::Raised</enum>
@@ -81,6 +79,8 @@ border: none;
    <header>ctkThumbnailLabel.h</header>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="ctkDICOMWidget.qrc"/>
+ </resources>
  <connections/>
 </ui>
