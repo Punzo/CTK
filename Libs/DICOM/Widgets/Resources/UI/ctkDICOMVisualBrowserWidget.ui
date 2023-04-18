@@ -738,8 +738,8 @@ Please set at least one filter to query the servers</string>
          <string>Cancel</string>
         </property>
         <property name="icon">
-         <iconset>
-          <normaloff>Icons/cancel.svg</normaloff>Icons/cancel.svg</iconset>
+         <iconset resource="ctkDICOMWidget.qrc">
+          <normaloff>:/Icons/cancel.svg</normaloff>:/Icons/cancel.svg</iconset>
         </property>
        </widget>
       </item>
