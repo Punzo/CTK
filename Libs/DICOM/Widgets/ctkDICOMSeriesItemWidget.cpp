@@ -362,7 +362,7 @@ void ctkDICOMSeriesItemWidgetPrivate::drawTextWithShadow(QPainter *painter,
   painter->drawText(r.adjusted(1, 1, 1, 1), flags, text);
   painter->setPen(QColor(Qt::gray));
   painter->drawText(r.adjusted(2, 2, 2, 2), flags, text);
-  painter->setPen(QPen(QColor(241,195,54)));
+  painter->setPen(QPen(QColor(41, 121, 255)));
   painter->drawText(r, flags, text);
 }
 

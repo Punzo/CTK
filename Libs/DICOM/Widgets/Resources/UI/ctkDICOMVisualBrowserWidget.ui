@@ -737,6 +737,10 @@ Please set at least one filter to query the servers</string>
         <property name="text">
          <string>Cancel</string>
         </property>
+        <property name="icon">
+         <iconset>
+          <normaloff>Icons/cancel.svg</normaloff>Icons/cancel.svg</iconset>
+        </property>
        </widget>
       </item>
       <item row="0" column="0">
@@ -853,7 +857,7 @@ Please set at least one filter to query the servers</string>
        </property>
        <property name="icon">
         <iconset resource="ctkDICOMWidget.qrc">
-         <normaloff>:/Icons/import.svg</normaloff>:/Icons/import.svg</iconset>
+         <normaloff>:/Icons/load.svg</normaloff>:/Icons/load.svg</iconset>
        </property>
        <property name="iconSize">
         <size>

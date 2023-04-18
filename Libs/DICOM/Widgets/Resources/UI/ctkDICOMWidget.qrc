@@ -1,13 +1,14 @@
 <RCC>
     <qresource prefix="/">
-        <file>Icons/cloud.svg</file>
         <file>Icons/accept.svg</file>
         <file>Icons/cancel.svg</file>
+        <file>Icons/cloud.svg</file>
         <file>Icons/import.svg</file>
+        <file>Icons/loaded.svg</file>
         <file>Icons/patient.svg</file>
         <file>Icons/query.svg</file>
-        <file>Icons/warning.svg</file>
-        <file>Icons/loaded.svg</file>
         <file>Icons/visible.svg</file>
+        <file>Icons/warning.svg</file>
+        <file>Icons/load.svg</file>
     </qresource>
 </RCC>
