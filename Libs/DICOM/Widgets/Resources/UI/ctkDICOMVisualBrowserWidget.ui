@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>928</width>
-    <height>491</height>
+    <height>503</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -598,6 +598,18 @@
    </item>
    <item>
     <widget class="ctkPushButton" name="WarningPushButton">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>70</height>
+      </size>
+     </property>
      <property name="focusPolicy">
       <enum>Qt::StrongFocus</enum>
      </property>
@@ -619,13 +631,13 @@ Please set at least one filter to query the servers</string>
       </size>
      </property>
      <property name="checkable">
-      <bool>true</bool>
+      <bool>false</bool>
      </property>
      <property name="checked">
       <bool>false</bool>
      </property>
      <property name="flat">
-      <bool>true</bool>
+      <bool>false</bool>
      </property>
     </widget>
    </item>
