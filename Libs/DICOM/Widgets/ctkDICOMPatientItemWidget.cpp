@@ -401,7 +401,7 @@ void ctkDICOMPatientItemWidget::addStudyItemWidget(const QString &studyItem)
   studyItemWidget->setNumberOfSeriesPerRow(d->NumberOfSeriesPerRow);
   if (this->parentWidget())
     {
-    studyItemWidget->setThumbnailSize(int((this->parentWidget()->width() * 0.95) / d->NumberOfSeriesPerRow));
+    studyItemWidget->setThumbnailSize(int((this->parentWidget()->width() * 0.9) / d->NumberOfSeriesPerRow));
     }
   studyItemWidget->setFilteringSeriesDescription(d->FilteringSeriesDescription);
   studyItemWidget->setFilteringModalities(d->FilteringModalities);
