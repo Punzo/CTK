@@ -14,7 +14,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>DICOM Visual Browser</string>
+   <string>Select data to load</string>
   </property>
   <property name="windowIcon">
    <iconset resource="ctkDICOMWidget.qrc">
@@ -812,7 +812,7 @@ Please set at least one filter to query the servers</string>
         <string>Import DICOM from a local folder.</string>
        </property>
        <property name="text">
-        <string>Import</string>
+        <string>Import DICOM files...</string>
        </property>
        <property name="icon">
         <iconset resource="ctkDICOMWidget.qrc">

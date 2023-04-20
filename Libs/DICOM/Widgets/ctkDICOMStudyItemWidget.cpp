@@ -207,7 +207,7 @@ void ctkDICOMStudyItemWidgetPrivate::createThumbnails(ctkDICOMTaskResults *taskR
       {
       iHeight = this->ThumbnailSize;
       }
-    iHeight += iHeight * 0.01;
+    iHeight += 25;
     this->SeriesListTableWidget->setMinimumHeight(iHeight);
   }
 }
@@ -496,7 +496,7 @@ void ctkDICOMStudyItemWidget::addSeriesItemWidget(const int& tableIndex,
   if (columnIndex == 0)
     {
     d->SeriesListTableWidget->insertRow(rowIndex);
-    d->SeriesListTableWidget->setRowHeight(rowIndex, d->ThumbnailSize);
+    d->SeriesListTableWidget->setRowHeight(rowIndex, d->ThumbnailSize + 30);
     }
 
   d->SeriesListTableWidget->setItem(rowIndex, columnIndex, tableItem);
