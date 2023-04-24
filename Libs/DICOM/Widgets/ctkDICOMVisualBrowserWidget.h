@@ -77,8 +77,13 @@ public:
   /// @see databaseDirectoryBase, setDatabaseDirectory
   void setDatabaseDirectoryBase(const QString& base);
 
+  /// Pool Manager
+  Q_INVOKABLE QSharedPointer<ctkDICOMPoolManager> poolManager()const;
+  Q_INVOKABLE void setPoolManager(ctkDICOMPoolManager& poolManager);
+
   /// Dicom Database
-  Q_INVOKABLE ctkDICOMDatabase* dicomDatabase()const;
+  Q_INVOKABLE QSharedPointer<ctkDICOMDatabase> dicomDatabase()const;
+  Q_INVOKABLE void setDicomDatabase(ctkDICOMDatabase& dicomDatabase);
 
   /// See ctkDICOMDatabase for description - these accessors
   /// delegate to the corresponding routines of the internal
