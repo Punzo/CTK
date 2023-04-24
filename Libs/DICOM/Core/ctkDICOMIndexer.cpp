@@ -215,7 +215,7 @@ void ctkDICOMIndexerPrivateWorker::processIndexingRequest(DICOMIndexingQueue::In
     ctkDICOMTaskResults* indexingResult = new ctkDICOMTaskResults;
     indexingResults.append(indexingResult);
     indexingResult->setFilePath(filePath);
-    if (indexingResult->dataset()->IsInitialized())
+    if (indexingResult->ctkItem()->IsInitialized())
     {
       indexingResult->setTypeOfTask(ctkDICOMTaskResults::TaskType::FileIndexing);
       indexingResult->setCopyFile(indexingRequest.copyFile);
@@ -259,7 +259,7 @@ void ctkDICOMIndexerPrivateWorker::processIndexingRequest(DICOMIndexingQueue::In
 
   float elapsedTimeInSeconds = timeProbe.elapsed() / 1000.0;
   logger.info(
-    QString("DICOM indexer has successfully processed %1 files [%6s]")
+    QString("DICOM indexer has processed %1 files [%6s]")
     .arg(currentFileIndex).arg(QString::number(elapsedTimeInSeconds, 'f', 6))
   );
 }
@@ -297,7 +297,7 @@ void ctkDICOMIndexerPrivateWorker::writeTaskResultsToDatabase(ctkDICOMDatabase& 
 
   float elapsedTimeInSeconds = timeProbe.elapsed() / 1000.0;
   logger.info(
-    QString("DICOM indexer has successfully inserted %1 datasets [%6s]")
+    QString("DICOM indexer has inserted %1 datasets [%6s]")
     .arg(initialTaskResultToInsert).arg(QString::number(elapsedTimeInSeconds, 'f', 6))
   );
 }
@@ -680,7 +680,7 @@ bool ctkDICOMIndexer::addDicomdir(const QString& directoryName, bool copyFile/*=
     }
     float elapsedTimeInSeconds = timeProbe.elapsed() / 1000.0;
     logger.info(
-      QString("DICOM indexer has successfully processed DICOMDIR in %1 [%6s]")
+      QString("DICOM indexer has processed DICOMDIR in %1 [%6s]")
       .arg(directoryName)
       .arg(QString::number(elapsedTimeInSeconds,'f', 6))
     );

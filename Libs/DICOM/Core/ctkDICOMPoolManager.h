@@ -126,7 +126,7 @@ public:
   Q_INVOKABLE int totalTasks();
   Q_INVOKABLE void stopAllTasksNotStarted();
   Q_INVOKABLE void deleteAllTasks();
-  Q_INVOKABLE void deleteTask(QString taskUID, ctkDICOMTaskResults *taskResults = nullptr);
+  Q_INVOKABLE void deleteTask(QString taskUID);
   Q_INVOKABLE void stopTasks(const QString& studyInstanceUID,
                              const QString& seriesInstanceUID = "",
                              const QString& sopInstanceUID = "");

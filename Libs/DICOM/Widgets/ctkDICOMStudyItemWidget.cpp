@@ -145,11 +145,6 @@ void ctkDICOMStudyItemWidgetPrivate::createThumbnails(ctkDICOMTaskResults *taskR
   QStringList seriesList = this->DicomDatabase->seriesForStudy(this->StudyInstanceUID);
   if (seriesList.count() == 0)
     {
-    if (taskResults)
-      {
-      this->PoolManager->deleteTask(taskResults->taskUID(), taskResults);
-      }
-
     return;
     }
 
@@ -161,11 +156,6 @@ void ctkDICOMStudyItemWidgetPrivate::createThumbnails(ctkDICOMTaskResults *taskR
     if (taskResults && seriesInstanceUID != taskResults->seriesInstanceUID())
       {
       continue;
-      }
-
-    if (taskResults)
-      {
-      this->PoolManager->deleteTask(taskResults->taskUID(), taskResults);
       }
 
     if (this->isSeriesItemAlreadyAdded(seriesItem))

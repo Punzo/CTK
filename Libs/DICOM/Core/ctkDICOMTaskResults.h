@@ -45,7 +45,6 @@ class CTK_DICOM_CORE_EXPORT ctkDICOMTaskResults : public QObject
   Q_PROPERTY(bool overwriteExistingDataset READ overwriteExistingDataset WRITE setOverwriteExistingDataset);
   Q_PROPERTY(TaskType typeOfTask READ typeOfTask WRITE setTypeOfTask);
   Q_PROPERTY(QString taskUID READ taskUID WRITE setTaskUID);
-  Q_PROPERTY(int numberOfTotalResultsForTask READ numberOfTotalResultsForTask WRITE setNumberOfTotalResultsForTask);
   Q_PROPERTY(QString patientID READ patientID WRITE setPatientID);
   Q_PROPERTY(QString studyInstanceUID READ studyInstanceUID WRITE setStudyInstanceUID);
   Q_PROPERTY(QString seriesInstanceUID READ seriesInstanceUID WRITE setSeriesInstanceUID);
@@ -83,10 +82,6 @@ public:
   void setTaskUID(const QString& taskUID);
   QString taskUID() const;
 
-  /// Count Reference of the number of total results object related to the taskUID
-  void setNumberOfTotalResultsForTask(const int& numberOfTotalResultsForTask);
-  int numberOfTotalResultsForTask() const;
-
   /// Patient ID
   void setPatientID(const QString& patientID);
   QString patientID() const;
@@ -108,13 +103,18 @@ public:
   QString connectionName() const;
 
   /// DCM dataset
-  Q_INVOKABLE void setDataset(DcmDataset *dataset);
-  Q_INVOKABLE QSharedPointer<ctkDICOMItem> dataset() const;
+  Q_INVOKABLE void setDataset(DcmItem* dataset, bool takeOwnership = false);
+  Q_INVOKABLE DcmItem* dataset();
+  Q_INVOKABLE QSharedPointer<ctkDICOMItem> ctkItem() const;
 
   /// DCM datasets map. Used when the logic needs to notify
   /// the UI only once with a larger subset of data.
-  Q_INVOKABLE void setDatasetsMap(QMap<QString, DcmDataset *> datasetsMap);
-  Q_INVOKABLE QMap<QString, QSharedPointer<ctkDICOMItem>> datasetsMap() const;
+  Q_INVOKABLE void setDatasetsMap(QMap<QString, DcmItem *> datasetsMap, bool takeOwnership = false);
+  Q_INVOKABLE QMap<QString, DcmItem *> datasetsMap() const;
+  Q_INVOKABLE QMap<QString, QSharedPointer<ctkDICOMItem>> ctkItemsMap() const;
+
+  /// Copy object
+  Q_INVOKABLE void deepCopy(ctkDICOMTaskResults* node);
 
 protected:
   QScopedPointer<ctkDICOMTaskResultsPrivate> d_ptr;

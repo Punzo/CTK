@@ -733,12 +733,6 @@ void ctkDICOMRetrieve::addTaskResults(QSharedPointer<ctkDICOMTaskResults> result
 {
   Q_D(ctkDICOMRetrieve);
   d->TaskResults.append(results);
-
-  int numberOfTotalResultsForTask = d->TaskResults.count();
-  foreach (QSharedPointer<ctkDICOMTaskResults> taskResults, d->TaskResults)
-    {
-    taskResults->setNumberOfTotalResultsForTask(numberOfTotalResultsForTask);
-    }
 }
 
 //------------------------------------------------------------------------------

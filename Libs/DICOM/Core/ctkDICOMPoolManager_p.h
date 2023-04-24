@@ -53,8 +53,8 @@ public:
   QSharedPointer<ctkDICOMIndexer> Indexer;
   QList<QSharedPointer<ctkDICOMServer>> Servers;
   QMap<QString, ctkAbstractTask*> Tasks;
-  QMap<QString, int> updatesCounterMap;
   QMap<QString, QVariant> Filters;
+  QList<QSharedPointer<ctkDICOMTaskResults>> TaskResults;
 
   int RetryDelay;
   int MaximumNumberOfRetry;

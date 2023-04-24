@@ -463,10 +463,6 @@ void ctkDICOMVisualBrowserWidgetPrivate::updateGUIOnQueryPatient(ctkDICOMTaskRes
   QStringList patientList = this->DicomDatabase->patients();
   if (patientList.count() == 0)
     {
-    if (taskResults)
-      {
-      this->PoolManager->deleteTask(taskResults->taskUID(), taskResults);
-      }
     return;
     }
 
@@ -475,10 +471,6 @@ void ctkDICOMVisualBrowserWidgetPrivate::updateGUIOnQueryPatient(ctkDICOMTaskRes
     {
     QString patientID = this->DicomDatabase->fieldForPatient("PatientID", patientItem);
     QString patientName = this->DicomDatabase->fieldForPatient("PatientsName", patientItem);
-    if (taskResults)
-      {
-      this->PoolManager->deleteTask(taskResults->taskUID(), taskResults);
-      }
 
     if (this->isPatientTabAlreadyAdded(patientItem))
       {
@@ -1596,17 +1588,19 @@ void ctkDICOMVisualBrowserWidget::removeSelectedItems(ctkDICOMModel::IndexType l
       qobject_cast<ctkDICOMPatientItemWidget*>(selectedWidget);
     if (patientItemWidget)
       {
-      QString patientUID = patientItemWidget->patientItem();
-      selectedStudyUIDs << d->DicomDatabase->studiesForPatient(patientUID);
-      if (!this->confirmDeleteSelectedUIDs(QStringList(patientUID)))
+      QString patientItem = patientItemWidget->patientItem();
+      QString patientID = d->DicomDatabase->fieldForPatient("PatientID", patientItem);
+      selectedStudyUIDs << d->DicomDatabase->studiesForPatient(patientItem);
+      selectedPatientUIDs << patientID;
+      if (!this->confirmDeleteSelectedUIDs(QStringList(patientID)))
         {
         return;
         }
 
-      this->removePatientItemWidget(patientUID);
+      this->removePatientItemWidget(patientItem);
       }
     }
-  if (level == ctkDICOMModel::StudyType)
+  else if (level == ctkDICOMModel::StudyType)
     {
     ctkDICOMStudyItemWidget* studyItemWidget =
       qobject_cast<ctkDICOMStudyItemWidget*>(selectedWidget);
@@ -1680,6 +1674,9 @@ void ctkDICOMVisualBrowserWidget::removeSelectedItems(ctkDICOMModel::IndexType l
     {
     d->DicomDatabase->removePatient(uid);
     }
+
+  d->removeAllPatientItemWidgets();
+  d->updateGUIOnQueryPatient();
 }
 
 //------------------------------------------------------------------------------
@@ -1775,7 +1772,7 @@ void ctkDICOMVisualBrowserWidget::onQueryPatient(bool forcefiltersEmpty)
     d->WarningPushButton->hide();
     }
 
-  if (filtersEmpty)
+  if (filtersEmpty || d->PoolManager->getNumberOfServers() == 0)
     {
     d->updateGUIOnQueryPatient();
     d->updateFiltersWarnings();
@@ -1816,9 +1813,7 @@ void ctkDICOMVisualBrowserWidget::onQueryPatient(bool forcefiltersEmpty)
 void ctkDICOMVisualBrowserWidget::updateGUIFromPoolManager(ctkDICOMTaskResults *taskResults)
 {
   Q_D(ctkDICOMVisualBrowserWidget);
-
   d->updateFiltersWarnings();
-
   if (!taskResults || taskResults->typeOfTask() != ctkDICOMTaskResults::TaskType::QueryStudies)
     {
     return;

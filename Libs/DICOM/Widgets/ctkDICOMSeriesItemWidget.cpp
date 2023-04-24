@@ -173,7 +173,6 @@ void ctkDICOMSeriesItemWidgetPrivate::createThumbnail(ctkDICOMTaskResults *taskR
     {
     taskSopInstanceUID = taskResults->sopInstanceUID();
     typeOfTask = taskResults->typeOfTask();
-    this->PoolManager->deleteTask(taskResults->taskUID(), taskResults);
     }
 
   QStringList instancesList = this->DicomDatabase->instancesForSeries(this->SeriesInstanceUID);
