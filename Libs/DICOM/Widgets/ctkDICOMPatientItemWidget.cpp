@@ -433,6 +433,7 @@ void ctkDICOMPatientItemWidget::removeStudyItemWidget(const QString &studyItem)
 
     this->disconnect(studyItemWidget, SIGNAL(customContextMenuRequested(const QPoint&)),
                   d->VisualDICOMBorwser, SLOT(showStudyContextMenu(const QPoint&)));
+    d->StudyItemWidgetsList.removeOne(studyItemWidget);
     delete studyItemWidget;
     break;
     }

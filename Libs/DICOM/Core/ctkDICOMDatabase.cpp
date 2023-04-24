@@ -969,11 +969,11 @@ void ctkDICOMDatabase::insert(ctkDICOMTaskResults* taskResult)
   QMap<QString, QSharedPointer<ctkDICOMItem>> datasetsMap;
   if (typeOfTask == ctkDICOMTaskResults::TaskType::QueryInstances)
   {
-    datasetsMap = taskResult->datasetsMap();
+    datasetsMap = taskResult->ctkItemsMap();
   }
   else
   {
-    datasetsMap.insert(taskResult->taskUID(), taskResult->dataset());
+    datasetsMap.insert(taskResult->taskUID(), taskResult->ctkItem());
   }
 
   QString patientsUID = this->patientForStudy(taskResult->studyInstanceUID());
@@ -1166,11 +1166,11 @@ void ctkDICOMDatabase::insert(QList<ctkDICOMTaskResults *> taskResults)
     QMap<QString, QSharedPointer<ctkDICOMItem>> datasetsMap;
     if (typeOfTask == ctkDICOMTaskResults::TaskType::QueryInstances)
     {
-      datasetsMap = taskResult->datasetsMap();
+      datasetsMap = taskResult->ctkItemsMap();
     }
     else
     {
-      datasetsMap.insert(taskResult->taskUID(), taskResult->dataset());
+      datasetsMap.insert(taskResult->taskUID(), taskResult->ctkItem());
     }
 
     QString patientsUID = this->patientForStudy(taskResult->studyInstanceUID());

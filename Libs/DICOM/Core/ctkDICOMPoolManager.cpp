@@ -62,6 +62,7 @@ ctkDICOMPoolManagerPrivate::~ctkDICOMPoolManagerPrivate()
     }
 
   this->Tasks.clear();
+  this->TaskResults.clear();
 
   QObject::disconnect(this->Indexer.data(), SIGNAL(progressTaskDetail(ctkDICOMTaskResults*)),
                       q, SIGNAL(progressTaskDetail(ctkDICOMTaskResults*)));
@@ -104,6 +105,8 @@ ctkDICOMPoolManager::~ctkDICOMPoolManager()
 void ctkDICOMPoolManager::queryStudies(QThread::Priority priority)
 {
   Q_D(ctkDICOMPoolManager);
+
+  d->TaskResults.clear();
 
   foreach(QSharedPointer<ctkDICOMServer> server, d->Servers)
     {
@@ -454,7 +457,7 @@ void ctkDICOMPoolManager::deleteAllTasks()
 }
 
 //----------------------------------------------------------------------------
-void ctkDICOMPoolManager::deleteTask(QString taskUID, ctkDICOMTaskResults *taskResults)
+void ctkDICOMPoolManager::deleteTask(QString taskUID)
 {
   Q_D(ctkDICOMPoolManager);
 
@@ -468,27 +471,6 @@ void ctkDICOMPoolManager::deleteTask(QString taskUID, ctkDICOMTaskResults *taskR
   if (!task)
     {
     return;
-    }
-
-  if (taskResults)
-    {
-    if (d->updatesCounterMap.contains(taskUID))
-      {
-      d->updatesCounterMap[taskUID]++;
-      }
-    else
-      {
-      d->updatesCounterMap.insert(taskUID, 1);
-      }
-
-   if (d->updatesCounterMap.value(taskUID) >= taskResults->numberOfTotalResultsForTask())
-      {
-      d->updatesCounterMap.remove(taskUID);
-      }
-    else
-      {
-      return;
-      }
     }
 
   logger.debug("ctkDICOMPoolManager: deleting task object " + taskUID);
@@ -734,15 +716,19 @@ void ctkDICOMPoolManager::taskFinished()
       {
       foreach (QSharedPointer<ctkDICOMTaskResults> taskResults, queryTask->taskResults())
         {
-        d->Indexer->insertTaskResults(taskResults);
+        QSharedPointer<ctkDICOMTaskResults> copy =
+          QSharedPointer<ctkDICOMTaskResults> (new ctkDICOMTaskResults);
+        copy->deepCopy(taskResults.data());
+        d->TaskResults.append(copy);
+        d->Indexer->insertTaskResults(copy);
         }
       }
     else
       {
-      this->deleteTask(queryTask->taskUID());
-      logger.debug("ctkDICOMPoolManager: GUI updating");
       emit this->progressTaskDetail(nullptr);
       }
+
+    this->deleteTask(queryTask->taskUID());
     }
 
   ctkDICOMRetrieveTask* retrieveTask = qobject_cast<ctkDICOMRetrieveTask*>(this->sender());
@@ -781,15 +767,19 @@ void ctkDICOMPoolManager::taskFinished()
       {
       foreach (QSharedPointer<ctkDICOMTaskResults> taskResults, retrieveTask->taskResults())
         {
-        d->Indexer->insertTaskResults(taskResults);
+        QSharedPointer<ctkDICOMTaskResults> copy =
+          QSharedPointer<ctkDICOMTaskResults> (new ctkDICOMTaskResults);
+        copy->deepCopy(taskResults.data());
+        d->TaskResults.append(copy);
+        d->Indexer->insertTaskResults(copy);
         }
       }
     else
       {
-      this->deleteTask(retrieveTask->taskUID());
-      logger.debug("ctkDICOMPoolManager: GUI updating");
       emit this->progressTaskDetail(nullptr);
       }
+
+    this->deleteTask(retrieveTask->taskUID());
     }
 }
 

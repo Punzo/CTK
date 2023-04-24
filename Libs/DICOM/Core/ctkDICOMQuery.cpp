@@ -581,12 +581,6 @@ bool ctkDICOMQuery::queryStudies(const QString& taskUID)
       }
     }
 
-  int numberOfTotalResultsForTask = d->TaskResults.count();
-  foreach (QSharedPointer<ctkDICOMTaskResults> taskResults, d->TaskResults)
-    {
-    taskResults->setNumberOfTotalResultsForTask(numberOfTotalResultsForTask);
-    }
-
   d->SCU.releaseAssociation();
   return true;
 }
@@ -687,12 +681,6 @@ bool ctkDICOMQuery::querySeries(const QString& taskUID,
 
         d->TaskResults.append(taskResults);
         }
-      }
-
-    int numberOfTotalResultsForTask = d->TaskResults.count();
-    foreach (QSharedPointer<ctkDICOMTaskResults> taskResults, d->TaskResults)
-      {
-      taskResults->setNumberOfTotalResultsForTask(numberOfTotalResultsForTask);
       }
 
     logger.debug("Find succeeded on Series level for Study: " + studyInstanceUID);
@@ -797,7 +785,7 @@ bool ctkDICOMQuery::queryInstances(const QString& taskUID,
   taskResults->setConnectionName(d->ConnectionName);
   taskResults->setTaskUID(taskUID);
 
-  QMap<QString, DcmDataset *> datasetsMap;
+  QMap<QString, DcmItem *> datasetsMap;
 
   OFList<QRResponse *> responses;
   OFCondition status = d->SCU.sendFINDRequest(presentationContext, d->Query, &responses);
@@ -805,7 +793,7 @@ bool ctkDICOMQuery::queryInstances(const QString& taskUID,
     {
     for (OFListIterator(QRResponse*) it = responses.begin(); it != responses.end(); it++)
       {
-      DcmDataset *dataset = (*it)->m_dataset;
+      DcmItem *dataset = (*it)->m_dataset;
       if (dataset != NULL)
         {
         OFString SOPInstanceUID;
@@ -823,7 +811,6 @@ bool ctkDICOMQuery::queryInstances(const QString& taskUID,
     emit progress(tr("Find on Series level failed for Series: ") + seriesInstanceUID);
     }
 
-  taskResults->setNumberOfTotalResultsForTask(1);
   taskResults->setDatasetsMap(datasetsMap);
   d->TaskResults.append(taskResults);
 

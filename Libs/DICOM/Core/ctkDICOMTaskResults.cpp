@@ -28,6 +28,7 @@
 
 // DCMTK includes
 #include "dcmtk/dcmnet/dimse.h"
+#include <dcmtk/dcmdata/dcdeftag.h>
 
 static ctkLogger logger("org.commontk.dicom.DICOMTaskResults");
 
@@ -50,14 +51,13 @@ public:
 
   ctkDICOMTaskResults::TaskType TypeOfTask;
   QString TaskUID;
-  int NumberOfTotalResultsForTask;
   QString PatientID;
   QString StudyInstanceUID;
   QString SeriesInstanceUID;
   QString SOPInstanceUID;
   QString ConnectionName;
   QSharedPointer<ctkDICOMItem> Dataset;
-  QMap<QString, QSharedPointer<ctkDICOMItem>> DatasetsMap;
+  QMap<QString, QSharedPointer<ctkDICOMItem>> ctkItemsMap;
 };
 
 //------------------------------------------------------------------------------
@@ -69,7 +69,6 @@ ctkDICOMTaskResultsPrivate::ctkDICOMTaskResultsPrivate(ctkDICOMTaskResults& obj)
 {
   this->TypeOfTask = ctkDICOMTaskResults::TaskType::FileIndexing;
   this->TaskUID = "";
-  this->NumberOfTotalResultsForTask = 0;
   this->PatientID = "";
   this->StudyInstanceUID = "";
   this->SeriesInstanceUID = "";
@@ -107,7 +106,7 @@ void ctkDICOMTaskResults::setFilePath(const QString &filePath)
   Q_D(ctkDICOMTaskResults);
   d->FilePath = filePath;
 
-  if (d->FilePath.contains("server://"))
+  if (d->FilePath.contains("server://") || d->FilePath == "")
     {
     return;
     }
@@ -177,20 +176,6 @@ QString ctkDICOMTaskResults::taskUID() const
 {
   Q_D(const ctkDICOMTaskResults);
   return d->TaskUID;
-}
-
-//------------------------------------------------------------------------------
-void ctkDICOMTaskResults::setNumberOfTotalResultsForTask(const int &numberOfTotalResultsForTask)
-{
-  Q_D(ctkDICOMTaskResults);
-  d->NumberOfTotalResultsForTask = numberOfTotalResultsForTask;
-}
-
-//------------------------------------------------------------------------------
-int ctkDICOMTaskResults::numberOfTotalResultsForTask() const
-{
-  Q_D(const ctkDICOMTaskResults);
-  return d->NumberOfTotalResultsForTask;
 }
 
 //------------------------------------------------------------------------------
@@ -264,42 +249,136 @@ QString ctkDICOMTaskResults::connectionName() const
 }
 
 //------------------------------------------------------------------------------
-void ctkDICOMTaskResults::setDataset(DcmDataset *dataset)
+void ctkDICOMTaskResults::setDataset(DcmItem* dataset, bool takeOwnership)
 {
   Q_D(ctkDICOMTaskResults);
+  if (!dataset)
+    {
+    return;
+    }
+
   d->Dataset = QSharedPointer<ctkDICOMItem>(new ctkDICOMItem);
-  d->Dataset->InitializeFromItem(dataset);
+  d->Dataset->InitializeFromItem(dataset, takeOwnership);
 }
 
 //------------------------------------------------------------------------------
-QSharedPointer<ctkDICOMItem> ctkDICOMTaskResults::dataset() const
+DcmItem* ctkDICOMTaskResults::dataset()
+{
+  Q_D(const ctkDICOMTaskResults);
+  if (!d->Dataset)
+    {
+    return nullptr;
+    }
+
+  return &d->Dataset->GetDcmItem();
+}
+
+//------------------------------------------------------------------------------
+QSharedPointer<ctkDICOMItem> ctkDICOMTaskResults::ctkItem() const
 {
   Q_D(const ctkDICOMTaskResults);
   return d->Dataset;
 }
 
 //------------------------------------------------------------------------------
-void ctkDICOMTaskResults::setDatasetsMap(QMap<QString, DcmDataset *> datasetsMap)
+void ctkDICOMTaskResults::setDatasetsMap(QMap<QString, DcmItem *> datasetsMap, bool takeOwnership)
 {
   Q_D(ctkDICOMTaskResults);
   for(QString sopInstanceUID : datasetsMap.keys())
     {
-    DcmDataset *dataset = datasetsMap.value(sopInstanceUID);
+    DcmItem *dataset = datasetsMap.value(sopInstanceUID);
     if (!dataset)
       {
       continue;
       }
 
     QSharedPointer<ctkDICOMItem> ctkDataset = QSharedPointer<ctkDICOMItem>(new ctkDICOMItem);
-    ctkDataset->InitializeFromItem(dataset);
+    ctkDataset->InitializeFromItem(dataset, takeOwnership);
 
-    d->DatasetsMap.insert(sopInstanceUID, ctkDataset);
+    d->ctkItemsMap.insert(sopInstanceUID, ctkDataset);
     }
 }
 
 //------------------------------------------------------------------------------
-QMap<QString, QSharedPointer<ctkDICOMItem>> ctkDICOMTaskResults::datasetsMap() const
+QMap<QString, DcmItem *> ctkDICOMTaskResults::datasetsMap() const
 {
   Q_D(const ctkDICOMTaskResults);
-  return d->DatasetsMap;
+  QMap<QString, DcmItem *> datasetsMap;
+  for(QString key : d->ctkItemsMap.keys())
+    {
+    QSharedPointer<ctkDICOMItem> ctkItem = d->ctkItemsMap.value(key);
+    if (ctkItem == nullptr)
+      {
+      continue;
+      }
+
+    DcmItem *dataset = &ctkItem->GetDcmItem();
+    if (dataset == nullptr)
+      {
+      continue;
+      }
+
+    OFString SOPInstanceUID;
+    dataset->findAndGetOFString(DCM_SOPInstanceUID, SOPInstanceUID);
+    datasetsMap.insert(SOPInstanceUID.c_str(), dataset);
+    }
+
+  return datasetsMap;
+}
+
+//------------------------------------------------------------------------------
+QMap<QString, QSharedPointer<ctkDICOMItem>> ctkDICOMTaskResults::ctkItemsMap() const
+{
+  Q_D(const ctkDICOMTaskResults);
+  return d->ctkItemsMap;
+}
+
+//------------------------------------------------------------------------------
+void ctkDICOMTaskResults::deepCopy(ctkDICOMTaskResults *node)
+{
+  if (!node)
+    {
+    return;
+    }
+
+  this->setFilePath(node->filePath());
+  this->setCopyFile(node->copyFile());
+  this->setOverwriteExistingDataset(node->overwriteExistingDataset());
+  this->setTypeOfTask(node->typeOfTask());
+  this->setTaskUID(node->filePath());
+  this->setPatientID(node->patientID());
+  this->setStudyInstanceUID(node->studyInstanceUID());
+  this->setSeriesInstanceUID(node->seriesInstanceUID());
+  this->setSOPInstanceUID(node->sopInstanceUID());
+  this->setConnectionName(node->connectionName());
+
+  DcmDataset* nodedcmItem = static_cast<DcmDataset*>(node->dataset());
+  if (nodedcmItem)
+    {
+    DcmDataset* dcmItem = new DcmDataset();
+    dcmItem->copyFrom(*node->dataset());
+    this->setDataset(dcmItem, true);
+    }
+
+  QMap<QString, DcmItem *> nodedcmItems = node->datasetsMap();
+  if (nodedcmItems.size() != 0)
+    {
+    QMap<QString, DcmItem *> dcmItems;
+    for(QString key : nodedcmItems.keys())
+      {
+      DcmDataset* nodedcmItem = static_cast<DcmDataset*>(nodedcmItems.value(key));
+      if (!nodedcmItem)
+        {
+        continue;
+        }
+
+      DcmDataset* dcmItem = new DcmDataset();
+      dcmItem->copyFrom(*nodedcmItem);
+      OFString SOPInstanceUID;
+      dcmItem->findAndGetOFString(DCM_SOPInstanceUID, SOPInstanceUID);
+      dcmItems.insert(SOPInstanceUID.c_str(), dcmItem);
+      }
+
+    this->setDatasetsMap(dcmItems, true);
+    }
 }
