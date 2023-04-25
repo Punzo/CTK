@@ -311,6 +311,48 @@ static void skipDelete(QObject* obj)
 }
 
 //----------------------------------------------------------------------------
+ctkDICOMTaskPool* ctkDICOMPatientItemWidget::taskPool()const
+{
+  Q_D(const ctkDICOMPatientItemWidget);
+  return d->TaskPool.data();
+}
+
+//----------------------------------------------------------------------------
+QSharedPointer<ctkDICOMTaskPool> ctkDICOMPatientItemWidget::taskPoolShared()const
+{
+  Q_D(const ctkDICOMPatientItemWidget);
+  return d->TaskPool;
+}
+
+//----------------------------------------------------------------------------
+void ctkDICOMPatientItemWidget::setTaskPool(ctkDICOMTaskPool& taskPool)
+{
+  Q_D(ctkDICOMPatientItemWidget);
+  d->TaskPool = QSharedPointer<ctkDICOMTaskPool>(&taskPool, skipDelete);
+}
+
+//----------------------------------------------------------------------------
+void ctkDICOMPatientItemWidget::setTaskPool(QSharedPointer<ctkDICOMTaskPool> taskPool)
+{
+  Q_D(ctkDICOMPatientItemWidget);
+  d->TaskPool = taskPool;
+}
+
+//----------------------------------------------------------------------------
+ctkDICOMDatabase* ctkDICOMPatientItemWidget::dicomDatabase()const
+{
+  Q_D(const ctkDICOMPatientItemWidget);
+  return d->DicomDatabase.data();
+}
+
+//----------------------------------------------------------------------------
+QSharedPointer<ctkDICOMDatabase> ctkDICOMPatientItemWidget::dicomDatabaseShared()const
+{
+  Q_D(const ctkDICOMPatientItemWidget);
+  return d->DicomDatabase;
+}
+
+//----------------------------------------------------------------------------
 void ctkDICOMPatientItemWidget::setDicomDatabase(ctkDICOMDatabase& dicomDatabase)
 {
   Q_D(ctkDICOMPatientItemWidget);
@@ -318,24 +360,10 @@ void ctkDICOMPatientItemWidget::setDicomDatabase(ctkDICOMDatabase& dicomDatabase
 }
 
 //----------------------------------------------------------------------------
-QSharedPointer<ctkDICOMDatabase> ctkDICOMPatientItemWidget::dicomDatabase()const
-{
-  Q_D(const ctkDICOMPatientItemWidget);
-  return d->DicomDatabase;
-}
-
-//----------------------------------------------------------------------------
-void ctkDICOMPatientItemWidget::setTaskPool(ctkDICOMTaskPool& TaskPool)
+void ctkDICOMPatientItemWidget::setDicomDatabase(QSharedPointer<ctkDICOMDatabase> dicomDatabase)
 {
   Q_D(ctkDICOMPatientItemWidget);
-  d->TaskPool = QSharedPointer<ctkDICOMTaskPool>(&TaskPool, skipDelete);
-}
-
-//----------------------------------------------------------------------------
-QSharedPointer<ctkDICOMTaskPool> ctkDICOMPatientItemWidget::TaskPool()const
-{
-  Q_D(const ctkDICOMPatientItemWidget);
-  return d->TaskPool;
+  d->DicomDatabase = dicomDatabase;
 }
 
 //------------------------------------------------------------------------------

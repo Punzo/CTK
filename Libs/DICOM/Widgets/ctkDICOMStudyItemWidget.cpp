@@ -378,21 +378,21 @@ static void skipDelete(QObject* obj)
 }
 
 //----------------------------------------------------------------------------
-void ctkDICOMStudyItemWidget::setDicomDatabase(ctkDICOMDatabase& dicomDatabase)
-{
-  Q_D(ctkDICOMStudyItemWidget);
-  d->DicomDatabase = QSharedPointer<ctkDICOMDatabase>(&dicomDatabase, skipDelete);
-}
-
-//----------------------------------------------------------------------------
-QSharedPointer<ctkDICOMDatabase> ctkDICOMStudyItemWidget::dicomDatabase()const
+ctkDICOMTaskPool* ctkDICOMStudyItemWidget::taskPool()const
 {
   Q_D(const ctkDICOMStudyItemWidget);
-  return d->DicomDatabase;
+  return d->TaskPool.data();
 }
 
 //----------------------------------------------------------------------------
-void ctkDICOMStudyItemWidget::setTaskPool(ctkDICOMTaskPool& TaskPool)
+QSharedPointer<ctkDICOMTaskPool> ctkDICOMStudyItemWidget::taskPoolShared()const
+{
+  Q_D(const ctkDICOMStudyItemWidget);
+  return d->TaskPool;
+}
+
+//----------------------------------------------------------------------------
+void ctkDICOMStudyItemWidget::setTaskPool(ctkDICOMTaskPool& taskPool)
 {
   Q_D(ctkDICOMStudyItemWidget);
   if (d->TaskPool)
@@ -401,7 +401,7 @@ void ctkDICOMStudyItemWidget::setTaskPool(ctkDICOMTaskPool& TaskPool)
                        this, SLOT(updateGUIFromTaskPool(ctkDICOMTaskResults*)));
     }
 
-  d->TaskPool = QSharedPointer<ctkDICOMTaskPool>(&TaskPool, skipDelete);
+  d->TaskPool = QSharedPointer<ctkDICOMTaskPool>(&taskPool, skipDelete);
 
   if (d->TaskPool)
     {
@@ -411,10 +411,50 @@ void ctkDICOMStudyItemWidget::setTaskPool(ctkDICOMTaskPool& TaskPool)
 }
 
 //----------------------------------------------------------------------------
-QSharedPointer<ctkDICOMTaskPool> ctkDICOMStudyItemWidget::TaskPool()const
+void ctkDICOMStudyItemWidget::setTaskPool(QSharedPointer<ctkDICOMTaskPool> taskPool)
+{
+  Q_D(ctkDICOMStudyItemWidget);
+  if (d->TaskPool)
+    {
+    QObject::disconnect(d->TaskPool.data(), SIGNAL(progressTaskDetail(ctkDICOMTaskResults*)),
+                       this, SLOT(updateGUIFromTaskPool(ctkDICOMTaskResults*)));
+    }
+
+  d->TaskPool = taskPool;
+
+  if (d->TaskPool)
+    {
+    QObject::connect(d->TaskPool.data(), SIGNAL(progressTaskDetail(ctkDICOMTaskResults*)),
+                     this, SLOT(updateGUIFromTaskPool(ctkDICOMTaskResults*)));
+    }
+}
+
+//----------------------------------------------------------------------------
+ctkDICOMDatabase* ctkDICOMStudyItemWidget::dicomDatabase()const
 {
   Q_D(const ctkDICOMStudyItemWidget);
-  return d->TaskPool;
+  return d->DicomDatabase.data();
+}
+
+//----------------------------------------------------------------------------
+QSharedPointer<ctkDICOMDatabase> ctkDICOMStudyItemWidget::dicomDatabaseShared()const
+{
+  Q_D(const ctkDICOMStudyItemWidget);
+  return d->DicomDatabase;
+}
+
+//----------------------------------------------------------------------------
+void ctkDICOMStudyItemWidget::setDicomDatabase(ctkDICOMDatabase& dicomDatabase)
+{
+  Q_D(ctkDICOMStudyItemWidget);
+  d->DicomDatabase = QSharedPointer<ctkDICOMDatabase>(&dicomDatabase, skipDelete);
+}
+
+//----------------------------------------------------------------------------
+void ctkDICOMStudyItemWidget::setDicomDatabase(QSharedPointer<ctkDICOMDatabase> dicomDatabase)
+{
+  Q_D(ctkDICOMStudyItemWidget);
+  d->DicomDatabase = dicomDatabase;
 }
 
 //------------------------------------------------------------------------------
