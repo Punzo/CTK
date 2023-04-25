@@ -31,7 +31,7 @@
 
 // ctkDICOMCore includes
 #include "ctkDICOMDatabase.h"
-#include "ctkDICOMPoolManager.h"
+#include "ctkDICOMTaskPool.h"
 #include "ctkDICOMTaskResults.h"
 
 // ctkDICOMWidgets includes
@@ -66,7 +66,7 @@ public:
   QStringList FilteringModalities;
 
   QSharedPointer<ctkDICOMDatabase> DicomDatabase;
-  QSharedPointer<ctkDICOMPoolManager> PoolManager;
+  QSharedPointer<ctkDICOMTaskPool> TaskPool;
 
   int ThumbnailSize;
   QString StudyInstanceUID;
@@ -85,7 +85,7 @@ ctkDICOMStudyItemWidgetPrivate::ctkDICOMStudyItemWidgetPrivate(ctkDICOMStudyItem
   this->ThumbnailSize = 300;  
 
   this->DicomDatabase = nullptr;
-  this->PoolManager = nullptr;
+  this->TaskPool = nullptr;
 }
 
 //----------------------------------------------------------------------------
@@ -392,29 +392,29 @@ QSharedPointer<ctkDICOMDatabase> ctkDICOMStudyItemWidget::dicomDatabase()const
 }
 
 //----------------------------------------------------------------------------
-void ctkDICOMStudyItemWidget::setPoolManager(ctkDICOMPoolManager& poolManager)
+void ctkDICOMStudyItemWidget::setTaskPool(ctkDICOMTaskPool& TaskPool)
 {
   Q_D(ctkDICOMStudyItemWidget);
-  if (d->PoolManager)
+  if (d->TaskPool)
     {
-    QObject::disconnect(d->PoolManager.data(), SIGNAL(progressTaskDetail(ctkDICOMTaskResults*)),
-                       this, SLOT(updateGUIFromPoolManager(ctkDICOMTaskResults*)));
+    QObject::disconnect(d->TaskPool.data(), SIGNAL(progressTaskDetail(ctkDICOMTaskResults*)),
+                       this, SLOT(updateGUIFromTaskPool(ctkDICOMTaskResults*)));
     }
 
-  d->PoolManager = QSharedPointer<ctkDICOMPoolManager>(&poolManager, skipDelete);
+  d->TaskPool = QSharedPointer<ctkDICOMTaskPool>(&TaskPool, skipDelete);
 
-  if (d->PoolManager)
+  if (d->TaskPool)
     {
-    QObject::connect(d->PoolManager.data(), SIGNAL(progressTaskDetail(ctkDICOMTaskResults*)),
-                     this, SLOT(updateGUIFromPoolManager(ctkDICOMTaskResults*)));
+    QObject::connect(d->TaskPool.data(), SIGNAL(progressTaskDetail(ctkDICOMTaskResults*)),
+                     this, SLOT(updateGUIFromTaskPool(ctkDICOMTaskResults*)));
     }
 }
 
 //----------------------------------------------------------------------------
-QSharedPointer<ctkDICOMPoolManager> ctkDICOMStudyItemWidget::poolManager()const
+QSharedPointer<ctkDICOMTaskPool> ctkDICOMStudyItemWidget::TaskPool()const
 {
   Q_D(const ctkDICOMStudyItemWidget);
-  return d->PoolManager;
+  return d->TaskPool;
 }
 
 //------------------------------------------------------------------------------
@@ -471,7 +471,7 @@ void ctkDICOMStudyItemWidget::addSeriesItemWidget(const int& tableIndex,
   seriesItemWidget->setSeriesDescription(seriesDescription);
   seriesItemWidget->setThumbnailSize(d->ThumbnailSize);
   seriesItemWidget->setDicomDatabase(*d->DicomDatabase);
-  seriesItemWidget->setPoolManager(*d->PoolManager);
+  seriesItemWidget->setTaskPool(*d->TaskPool);
   seriesItemWidget->generateInstances();
   seriesItemWidget->setContextMenuPolicy(Qt::CustomContextMenu);
 
@@ -527,14 +527,14 @@ void ctkDICOMStudyItemWidget::generateSeries()
 {
   Q_D(ctkDICOMStudyItemWidget);
 
-  if (!d->PoolManager)
+  if (!d->TaskPool)
     {
     return;
     }
 
-  if (d->PoolManager->getNumberOfServers() > 0)
+  if (d->TaskPool->getNumberOfServers() > 0)
     {
-    d->PoolManager->querySeries(d->StudyInstanceUID,
+    d->TaskPool->querySeries(d->StudyInstanceUID,
                                 QThread::NormalPriority);
     }
   else
@@ -544,7 +544,7 @@ void ctkDICOMStudyItemWidget::generateSeries()
 }
 
 //------------------------------------------------------------------------------
-void ctkDICOMStudyItemWidget::updateGUIFromPoolManager(ctkDICOMTaskResults *taskResults)
+void ctkDICOMStudyItemWidget::updateGUIFromTaskPool(ctkDICOMTaskResults *taskResults)
 {
   Q_D(ctkDICOMStudyItemWidget);
 

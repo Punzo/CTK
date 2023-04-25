@@ -31,7 +31,7 @@
 class ctkDICOMPatientItemWidgetPrivate;
 
 class ctkDICOMDatabase;
-class ctkDICOMPoolManager;
+class ctkDICOMTaskPool;
 class ctkDICOMStudyItemWidget;
 
 /// \ingroup DICOM_Widgets
@@ -88,11 +88,11 @@ public:
   void setNumberOfSeriesPerRow(int numberOfSeriesPerRow);
   int numberOfSeriesPerRow() const;
 
-  /// Pool manager and dicom database references
+  /// task pool and dicom database references
   Q_INVOKABLE QSharedPointer<ctkDICOMDatabase> dicomDatabase()const;
   Q_INVOKABLE void setDicomDatabase(ctkDICOMDatabase& dicomDatabase);
-  Q_INVOKABLE QSharedPointer<ctkDICOMPoolManager> poolManager()const;
-  Q_INVOKABLE void setPoolManager(ctkDICOMPoolManager& poolManager);
+  Q_INVOKABLE QSharedPointer<ctkDICOMTaskPool> TaskPool()const;
+  Q_INVOKABLE void setTaskPool(ctkDICOMTaskPool& TaskPool);
 
   /// Return all the study item widgets for the patient
   Q_INVOKABLE QList<ctkDICOMStudyItemWidget*> studyItemWidgetsList()const;

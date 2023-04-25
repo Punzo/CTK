@@ -22,8 +22,8 @@
 =========================================================================*/
 
 // ctkDICOMCore includes
-#include "ctkDICOMPoolManager.h"
-#include "ctkDICOMPoolManager_p.h"
+#include "ctkDICOMTaskPool.h"
+#include "ctkDICOMTaskPool_p.h"
 #include "ctkDICOMQueryTask.h"
 #include "ctkDICOMRetrieveTask.h"
 #include "ctkDICOMServer.h"
@@ -31,13 +31,13 @@
 #include "ctkDICOMUtil.h"
 #include "ctkLogger.h"
 
-static ctkLogger logger ( "org.commontk.dicom.DICOMPoolManager" );
+static ctkLogger logger ( "org.commontk.dicom.DICOMTaskPool" );
 
 //------------------------------------------------------------------------------
-// ctkDICOMPoolManagerPrivate methods
+// ctkDICOMTaskPoolPrivate methods
 
 //------------------------------------------------------------------------------
-ctkDICOMPoolManagerPrivate::ctkDICOMPoolManagerPrivate(ctkDICOMPoolManager& obj)
+ctkDICOMTaskPoolPrivate::ctkDICOMTaskPoolPrivate(ctkDICOMTaskPool& obj)
   : q_ptr(&obj)
 {    
   ctk::setDICOMLogLevel(ctkErrorLogLevel::Info);
@@ -51,9 +51,9 @@ ctkDICOMPoolManagerPrivate::ctkDICOMPoolManagerPrivate(ctkDICOMPoolManager& obj)
 }
 
 //------------------------------------------------------------------------------
-ctkDICOMPoolManagerPrivate::~ctkDICOMPoolManagerPrivate()
+ctkDICOMTaskPoolPrivate::~ctkDICOMTaskPoolPrivate()
 {
-  Q_Q(ctkDICOMPoolManager);
+  Q_Q(ctkDICOMTaskPool);
 
   foreach (ctkAbstractTask* task, this->Tasks)
     {
@@ -69,42 +69,42 @@ ctkDICOMPoolManagerPrivate::~ctkDICOMPoolManagerPrivate()
 }
 
 //------------------------------------------------------------------------------
-QString ctkDICOMPoolManagerPrivate::generateUniqueTaskUID()
+QString ctkDICOMTaskPoolPrivate::generateUniqueTaskUID()
 {
   return QUuid::createUuid().toString(QUuid::StringFormat::WithoutBraces);
 }
 
 //------------------------------------------------------------------------------
-void ctkDICOMPoolManagerPrivate::init()
+void ctkDICOMTaskPoolPrivate::init()
 {
-  Q_Q(ctkDICOMPoolManager);
+  Q_Q(ctkDICOMTaskPool);
 
   QObject::connect(this->Indexer.data(), SIGNAL(progressTaskDetail(ctkDICOMTaskResults*)),
                    q, SIGNAL(progressTaskDetail(ctkDICOMTaskResults*)));
 }
 
 //------------------------------------------------------------------------------
-// ctkDICOMPoolManager methods
+// ctkDICOMTaskPool methods
 
 //------------------------------------------------------------------------------
-ctkDICOMPoolManager::ctkDICOMPoolManager(QObject* parentObject)
+ctkDICOMTaskPool::ctkDICOMTaskPool(QObject* parentObject)
   : Superclass(parentObject)
-  , d_ptr(new ctkDICOMPoolManagerPrivate(*this))
+  , d_ptr(new ctkDICOMTaskPoolPrivate(*this))
 {
-  Q_D(ctkDICOMPoolManager);
+  Q_D(ctkDICOMTaskPool);
 
   d->init();
 }
 
 //------------------------------------------------------------------------------
-ctkDICOMPoolManager::~ctkDICOMPoolManager()
+ctkDICOMTaskPool::~ctkDICOMTaskPool()
 {
 }
 
 //----------------------------------------------------------------------------
-void ctkDICOMPoolManager::queryStudies(QThread::Priority priority)
+void ctkDICOMTaskPool::queryStudies(QThread::Priority priority)
 {
-  Q_D(ctkDICOMPoolManager);
+  Q_D(ctkDICOMTaskPool);
 
   d->TaskResults.clear();
 
@@ -129,10 +129,10 @@ void ctkDICOMPoolManager::queryStudies(QThread::Priority priority)
 }
 
 //----------------------------------------------------------------------------
-void ctkDICOMPoolManager::querySeries(const QString& studyInstanceUID,
+void ctkDICOMTaskPool::querySeries(const QString& studyInstanceUID,
                                       QThread::Priority priority)
 {
-  Q_D(ctkDICOMPoolManager);
+  Q_D(ctkDICOMTaskPool);
 
   foreach(QSharedPointer<ctkDICOMServer> server, d->Servers)
     {
@@ -156,11 +156,11 @@ void ctkDICOMPoolManager::querySeries(const QString& studyInstanceUID,
 }
 
 //----------------------------------------------------------------------------
-void ctkDICOMPoolManager::queryInstances(const QString& studyInstanceUID,
+void ctkDICOMTaskPool::queryInstances(const QString& studyInstanceUID,
                                          const QString& seriesInstanceUID,
                                          QThread::Priority priority)
 {
-  Q_D(ctkDICOMPoolManager);
+  Q_D(ctkDICOMTaskPool);
 
   foreach(QSharedPointer<ctkDICOMServer> server, d->Servers)
     {
@@ -185,10 +185,10 @@ void ctkDICOMPoolManager::queryInstances(const QString& studyInstanceUID,
 }
 
 //----------------------------------------------------------------------------
-void ctkDICOMPoolManager::retrieveStudy(const QString &studyInstanceUID,
+void ctkDICOMTaskPool::retrieveStudy(const QString &studyInstanceUID,
                                         QThread::Priority priority)
 {
-  Q_D(ctkDICOMPoolManager);
+  Q_D(ctkDICOMTaskPool);
 
     foreach(QSharedPointer<ctkDICOMServer> server, d->Servers)
       {
@@ -211,11 +211,11 @@ void ctkDICOMPoolManager::retrieveStudy(const QString &studyInstanceUID,
 }
 
 //----------------------------------------------------------------------------
-void ctkDICOMPoolManager::retrieveSeries(const QString &studyInstanceUID,
+void ctkDICOMTaskPool::retrieveSeries(const QString &studyInstanceUID,
                                          const QString &seriesInstanceUID,
                                          QThread::Priority priority)
 {
-    Q_D(ctkDICOMPoolManager);
+    Q_D(ctkDICOMTaskPool);
 
     foreach(QSharedPointer<ctkDICOMServer> server, d->Servers)
       {
@@ -239,12 +239,12 @@ void ctkDICOMPoolManager::retrieveSeries(const QString &studyInstanceUID,
 }
 
 //----------------------------------------------------------------------------
-void ctkDICOMPoolManager::retrieveSOPInstance(const QString &studyInstanceUID,
+void ctkDICOMTaskPool::retrieveSOPInstance(const QString &studyInstanceUID,
                                               const QString &seriesInstanceUID,
                                               const QString &SOPInstanceUID,
                                               QThread::Priority priority)
 {
-   Q_D(ctkDICOMPoolManager);
+   Q_D(ctkDICOMTaskPool);
 
    foreach(QSharedPointer<ctkDICOMServer> server, d->Servers)
      {
@@ -277,23 +277,23 @@ static void skipDelete(QObject* obj)
 }
 
 //----------------------------------------------------------------------------
-ctkDICOMDatabase* ctkDICOMPoolManager::dicomDatabase()const
+ctkDICOMDatabase* ctkDICOMTaskPool::dicomDatabase()const
 {
-  Q_D(const ctkDICOMPoolManager);
+  Q_D(const ctkDICOMTaskPool);
   return d->DicomDatabase.data();
 }
 
 //----------------------------------------------------------------------------
-QSharedPointer<ctkDICOMDatabase> ctkDICOMPoolManager::dicomDatabaseShared()const
+QSharedPointer<ctkDICOMDatabase> ctkDICOMTaskPool::dicomDatabaseShared()const
 {
-  Q_D(const ctkDICOMPoolManager);
+  Q_D(const ctkDICOMTaskPool);
   return d->DicomDatabase;
 }
 
 //----------------------------------------------------------------------------
-void ctkDICOMPoolManager::setDicomDatabase(ctkDICOMDatabase& dicomDatabase)
+void ctkDICOMTaskPool::setDicomDatabase(ctkDICOMDatabase& dicomDatabase)
 {
-  Q_D(ctkDICOMPoolManager);
+  Q_D(ctkDICOMTaskPool);
   d->DicomDatabase = QSharedPointer<ctkDICOMDatabase>(&dicomDatabase, skipDelete);
   if (d->Indexer)
     {
@@ -302,9 +302,9 @@ void ctkDICOMPoolManager::setDicomDatabase(ctkDICOMDatabase& dicomDatabase)
 }
 
 //----------------------------------------------------------------------------
-void ctkDICOMPoolManager::setDicomDatabase(QSharedPointer<ctkDICOMDatabase> dicomDatabase)
+void ctkDICOMTaskPool::setDicomDatabase(QSharedPointer<ctkDICOMDatabase> dicomDatabase)
 {
-  Q_D(ctkDICOMPoolManager);
+  Q_D(ctkDICOMTaskPool);
   d->DicomDatabase = dicomDatabase;
   if (d->Indexer)
     {
@@ -313,30 +313,30 @@ void ctkDICOMPoolManager::setDicomDatabase(QSharedPointer<ctkDICOMDatabase> dico
 }
 
 //----------------------------------------------------------------------------
-void ctkDICOMPoolManager::setFilters(const QMap<QString, QVariant> &filters)
+void ctkDICOMTaskPool::setFilters(const QMap<QString, QVariant> &filters)
 {
-  Q_D(ctkDICOMPoolManager);
+  Q_D(ctkDICOMTaskPool);
   d->Filters = filters;
 }
 
 //----------------------------------------------------------------------------
-QMap<QString, QVariant> ctkDICOMPoolManager::filters() const
+QMap<QString, QVariant> ctkDICOMTaskPool::filters() const
 {
-  Q_D(const ctkDICOMPoolManager);
+  Q_D(const ctkDICOMTaskPool);
   return d->Filters;
 }
 
 //----------------------------------------------------------------------------
-int ctkDICOMPoolManager::getNumberOfServers()
+int ctkDICOMTaskPool::getNumberOfServers()
 {
-  Q_D(ctkDICOMPoolManager);
+  Q_D(ctkDICOMTaskPool);
   return d->Servers.size();
 }
 
 //----------------------------------------------------------------------------
-ctkDICOMServer* ctkDICOMPoolManager::getNthServer(int id)
+ctkDICOMServer* ctkDICOMTaskPool::getNthServer(int id)
 {
-  Q_D(ctkDICOMPoolManager);
+  Q_D(ctkDICOMTaskPool);
   if (id < 0 || id > d->Servers.size())
     {
     return nullptr;
@@ -345,29 +345,29 @@ ctkDICOMServer* ctkDICOMPoolManager::getNthServer(int id)
 }
 
 //----------------------------------------------------------------------------
-ctkDICOMServer* ctkDICOMPoolManager::getServer(const char *connectioName)
+ctkDICOMServer* ctkDICOMTaskPool::getServer(const char *connectioName)
 {
   return this->getNthServer(this->getServerIndexFromName(connectioName));
 }
 
 //----------------------------------------------------------------------------
-void ctkDICOMPoolManager::addServer(ctkDICOMServer* server)
+void ctkDICOMTaskPool::addServer(ctkDICOMServer* server)
 {
-  Q_D(ctkDICOMPoolManager);
+  Q_D(ctkDICOMTaskPool);
   QSharedPointer<ctkDICOMServer> QsharedServer = QSharedPointer<ctkDICOMServer>(server);
   d->Servers.push_back(QsharedServer);
 }
 
 //----------------------------------------------------------------------------
-void ctkDICOMPoolManager::removeServer(const char *connectioName)
+void ctkDICOMTaskPool::removeServer(const char *connectioName)
 {
   this->removeNthServer(this->getServerIndexFromName(connectioName));
 }
 
 //----------------------------------------------------------------------------
-void ctkDICOMPoolManager::removeNthServer(int id)
+void ctkDICOMTaskPool::removeNthServer(int id)
 {
-  Q_D(ctkDICOMPoolManager);
+  Q_D(ctkDICOMTaskPool);
   if (id < 0 || id > d->Servers.size())
     {
     return;
@@ -377,9 +377,9 @@ void ctkDICOMPoolManager::removeNthServer(int id)
 }
 
 //----------------------------------------------------------------------------
-QString ctkDICOMPoolManager::getServerNameFromIndex(int id)
+QString ctkDICOMTaskPool::getServerNameFromIndex(int id)
 {
-  Q_D(ctkDICOMPoolManager);
+  Q_D(ctkDICOMTaskPool);
   if (id < 0 || id > d->Servers.size())
     {
     return "";
@@ -395,9 +395,9 @@ QString ctkDICOMPoolManager::getServerNameFromIndex(int id)
 }
 
 //----------------------------------------------------------------------------
-int ctkDICOMPoolManager::getServerIndexFromName(const char *connectioName)
+int ctkDICOMTaskPool::getServerIndexFromName(const char *connectioName)
 {
-  Q_D(ctkDICOMPoolManager);
+  Q_D(ctkDICOMTaskPool);
   if (!connectioName)
     {
     return -1;
@@ -415,9 +415,9 @@ int ctkDICOMPoolManager::getServerIndexFromName(const char *connectioName)
 }
 
 //----------------------------------------------------------------------------
-void ctkDICOMPoolManager::waitForDone(int msecs)
+void ctkDICOMTaskPool::waitForDone(int msecs)
 {
-  Q_D(ctkDICOMPoolManager);
+  Q_D(ctkDICOMTaskPool);
 
   if(d->ThreadPool->activeThreadCount())
     {
@@ -426,9 +426,9 @@ void ctkDICOMPoolManager::waitForDone(int msecs)
 }
 
 //----------------------------------------------------------------------------
-void ctkDICOMPoolManager::waitForFinish(int msecs)
+void ctkDICOMTaskPool::waitForFinish(int msecs)
 {
-  Q_D(ctkDICOMPoolManager);
+  Q_D(ctkDICOMTaskPool);
 
   int numberOfTasks = d->Tasks.count();
   while(numberOfTasks > 0)
@@ -440,16 +440,16 @@ void ctkDICOMPoolManager::waitForFinish(int msecs)
 }
 
 //----------------------------------------------------------------------------
-int ctkDICOMPoolManager::totalTasks()
+int ctkDICOMTaskPool::totalTasks()
 {
-  Q_D(ctkDICOMPoolManager);
+  Q_D(ctkDICOMTaskPool);
   return d->Tasks.count();
 }
 
 //----------------------------------------------------------------------------
-void ctkDICOMPoolManager::stopAllTasksNotStarted()
+void ctkDICOMTaskPool::stopAllTasksNotStarted()
 {
-  Q_D(ctkDICOMPoolManager);
+  Q_D(ctkDICOMTaskPool);
 
   d->ThreadPool->clear();
   foreach (ctkAbstractTask* task, d->Tasks)
@@ -465,9 +465,9 @@ void ctkDICOMPoolManager::stopAllTasksNotStarted()
 }
 
 //----------------------------------------------------------------------------
-void ctkDICOMPoolManager::deleteAllTasks()
+void ctkDICOMTaskPool::deleteAllTasks()
 {
-  Q_D(ctkDICOMPoolManager);
+  Q_D(ctkDICOMTaskPool);
 
   d->ThreadPool->clear();
   foreach (ctkAbstractTask* task, d->Tasks)
@@ -478,9 +478,9 @@ void ctkDICOMPoolManager::deleteAllTasks()
 }
 
 //----------------------------------------------------------------------------
-void ctkDICOMPoolManager::deleteTask(QString taskUID)
+void ctkDICOMTaskPool::deleteTask(QString taskUID)
 {
-  Q_D(ctkDICOMPoolManager);
+  Q_D(ctkDICOMTaskPool);
 
   QMap<QString, ctkAbstractTask*>::iterator it = d->Tasks.find(taskUID);
   if (it == d->Tasks.end())
@@ -494,7 +494,7 @@ void ctkDICOMPoolManager::deleteTask(QString taskUID)
     return;
     }
 
-  logger.debug("ctkDICOMPoolManager: deleting task object " + taskUID);
+  logger.debug("ctkDICOMTaskPool: deleting task object " + taskUID);
 
   QObject::disconnect(task, SIGNAL(started()), this, SLOT(taskStarted()));
   QObject::disconnect(task, SIGNAL(finished()), this, SLOT(taskFinished()));
@@ -505,11 +505,11 @@ void ctkDICOMPoolManager::deleteTask(QString taskUID)
 }
 
 //----------------------------------------------------------------------------
-void ctkDICOMPoolManager::stopTasks(const QString &studyInstanceUID,
+void ctkDICOMTaskPool::stopTasks(const QString &studyInstanceUID,
                                     const QString &seriesInstanceUID,
                                     const QString &sopInstanceUID)
 {
-  Q_D(ctkDICOMPoolManager);
+  Q_D(ctkDICOMTaskPool);
 
   foreach (ctkAbstractTask* task, d->Tasks)
     {
@@ -554,11 +554,11 @@ void ctkDICOMPoolManager::stopTasks(const QString &studyInstanceUID,
 }
 
 //----------------------------------------------------------------------------
-void ctkDICOMPoolManager::raiseRetrieveFramesTasksPriorityForSeries(const QString &studyInstanceUID,
+void ctkDICOMTaskPool::raiseRetrieveFramesTasksPriorityForSeries(const QString &studyInstanceUID,
                                                                     const QString &seriesInstanceUID,
                                                                     QThread::Priority priority)
 {
-  Q_D(ctkDICOMPoolManager);
+  Q_D(ctkDICOMTaskPool);
 
   foreach (ctkAbstractTask* task, d->Tasks)
     {
@@ -588,64 +588,64 @@ void ctkDICOMPoolManager::raiseRetrieveFramesTasksPriorityForSeries(const QStrin
 }
 
 //----------------------------------------------------------------------------
-int ctkDICOMPoolManager::maximumThreadCount() const
+int ctkDICOMTaskPool::maximumThreadCount() const
 {
-  Q_D(const ctkDICOMPoolManager);
+  Q_D(const ctkDICOMTaskPool);
   return d->ThreadPool->maxThreadCount();
 }
 
 //----------------------------------------------------------------------------
-void ctkDICOMPoolManager::setMaximumThreadCount(const int &maximumThreadCount)
+void ctkDICOMTaskPool::setMaximumThreadCount(const int &maximumThreadCount)
 {
-  Q_D(ctkDICOMPoolManager);
+  Q_D(ctkDICOMTaskPool);
 
   d->ThreadPool->setMaxThreadCount(maximumThreadCount);
 }
 
 //----------------------------------------------------------------------------
-int ctkDICOMPoolManager::maximumNumberOfRetry() const
+int ctkDICOMTaskPool::maximumNumberOfRetry() const
 {
-  Q_D(const ctkDICOMPoolManager);
+  Q_D(const ctkDICOMTaskPool);
   return d->MaximumNumberOfRetry;
 }
 
 //----------------------------------------------------------------------------
-void ctkDICOMPoolManager::setMaximumNumberOfRetry(const int &maximumNumberOfRetry)
+void ctkDICOMTaskPool::setMaximumNumberOfRetry(const int &maximumNumberOfRetry)
 {
-  Q_D(ctkDICOMPoolManager);
+  Q_D(ctkDICOMTaskPool);
   d->MaximumNumberOfRetry = maximumNumberOfRetry;
 }
 
 //----------------------------------------------------------------------------
-int ctkDICOMPoolManager::retryDelay() const
+int ctkDICOMTaskPool::retryDelay() const
 {
-  Q_D(const ctkDICOMPoolManager);
+  Q_D(const ctkDICOMTaskPool);
   return d->RetryDelay;
 }
 
 //----------------------------------------------------------------------------
-void ctkDICOMPoolManager::setRetryDelay(const int &retryDelay)
+void ctkDICOMTaskPool::setRetryDelay(const int &retryDelay)
 {
-  Q_D(ctkDICOMPoolManager);
+  Q_D(ctkDICOMTaskPool);
   d->RetryDelay = retryDelay;
 }
 
 //----------------------------------------------------------------------------
-QSharedPointer<ctkDICOMIndexer> ctkDICOMPoolManager::Indexer() const
+QSharedPointer<ctkDICOMIndexer> ctkDICOMTaskPool::Indexer() const
 {
-  Q_D(const ctkDICOMPoolManager);
+  Q_D(const ctkDICOMTaskPool);
   return d->Indexer;
 }
 
 //----------------------------------------------------------------------------
-QSharedPointer<QThreadPool> ctkDICOMPoolManager::threadPool() const
+QSharedPointer<QThreadPool> ctkDICOMTaskPool::threadPool() const
 {
-  Q_D(const ctkDICOMPoolManager);
+  Q_D(const ctkDICOMTaskPool);
   return d->ThreadPool;
 }
 
 //----------------------------------------------------------------------------
-void ctkDICOMPoolManager::taskStarted()
+void ctkDICOMTaskPool::taskStarted()
 {
   ctkDICOMQueryTask* queryTask = qobject_cast<ctkDICOMQueryTask*>(this->sender());
   if (queryTask)
@@ -653,18 +653,18 @@ void ctkDICOMPoolManager::taskStarted()
     switch (queryTask->queryLevel())
       {
       case ctkDICOMQueryTask::DICOMLevel::Studies:
-        logger.debug("ctkDICOMPoolManager: query task at studies level started. "
+        logger.debug("ctkDICOMTaskPool: query task at studies level started. "
                      "TaskUID: " + queryTask->taskUID() +
                      " Server: " + queryTask->server()->connectionName());
         break;
       case ctkDICOMQueryTask::DICOMLevel::Series:
-        logger.debug("ctkDICOMPoolManager: query task at series level started. "
+        logger.debug("ctkDICOMTaskPool: query task at series level started. "
                      "TaskUID: " + queryTask->taskUID() +
                      " Server: " + queryTask->server()->connectionName() +
                      " StudyInstanceUID: " + queryTask->studyInstanceUID());
         break;
       case ctkDICOMQueryTask::DICOMLevel::Instances:
-        logger.debug("ctkDICOMPoolManager: query task at instances level started. "
+        logger.debug("ctkDICOMTaskPool: query task at instances level started. "
                      "TaskUID: " + queryTask->taskUID() +
                      " Server: " + queryTask->server()->connectionName() +
                      " StudyInstanceUID: " + queryTask->studyInstanceUID() +
@@ -679,20 +679,20 @@ void ctkDICOMPoolManager::taskStarted()
     switch (retrieveTask->retrieveLevel())
       {
       case ctkDICOMRetrieveTask::DICOMLevel::Studies:
-        logger.debug("ctkDICOMPoolManager: retrieve task at studies level started. "
+        logger.debug("ctkDICOMTaskPool: retrieve task at studies level started. "
                      "TaskUID: " + retrieveTask->taskUID() +
                      " Server: " + retrieveTask->server()->connectionName() +
                      " StudyInstanceUID: " + retrieveTask->studyInstanceUID());
         break;
       case ctkDICOMRetrieveTask::DICOMLevel::Series:
-        logger.debug("ctkDICOMPoolManager: retrieve task at series level started. "
+        logger.debug("ctkDICOMTaskPool: retrieve task at series level started. "
                      "TaskUID: " + retrieveTask->taskUID() +
                      " Server: " + retrieveTask->server()->connectionName() +
                      " StudyInstanceUID: " + retrieveTask->studyInstanceUID() +
                      " SeriesInstanceUID: " + retrieveTask->seriesInstanceUID());
         break;
       case ctkDICOMRetrieveTask::DICOMLevel::Instances:
-        logger.debug("ctkDICOMPoolManager: retrieve task at instances level started. "
+        logger.debug("ctkDICOMTaskPool: retrieve task at instances level started. "
                      "TaskUID: " + retrieveTask->taskUID() +
                      " Server: " + retrieveTask->server()->connectionName() +
                      " StudyInstanceUID: " + retrieveTask->studyInstanceUID() +
@@ -704,9 +704,9 @@ void ctkDICOMPoolManager::taskStarted()
 }
 
 //----------------------------------------------------------------------------
-void ctkDICOMPoolManager::taskFinished()
+void ctkDICOMTaskPool::taskFinished()
 {
-  Q_D(ctkDICOMPoolManager);
+  Q_D(ctkDICOMTaskPool);
 
   ctkDICOMQueryTask* queryTask = qobject_cast<ctkDICOMQueryTask*>(this->sender());
   if (queryTask)
@@ -714,18 +714,18 @@ void ctkDICOMPoolManager::taskFinished()
     switch (queryTask->queryLevel())
       {
       case ctkDICOMQueryTask::DICOMLevel::Studies:
-        logger.debug("ctkDICOMPoolManager: query task at studies level finished. "
+        logger.debug("ctkDICOMTaskPool: query task at studies level finished. "
                      "TaskUID: " + queryTask->taskUID() +
                      " Server: " + queryTask->server()->connectionName());
         break;
       case ctkDICOMQueryTask::DICOMLevel::Series:
-        logger.debug("ctkDICOMPoolManager: query task at series level finished. "
+        logger.debug("ctkDICOMTaskPool: query task at series level finished. "
                      "TaskUID: " + queryTask->taskUID() +
                      " Server: " + queryTask->server()->connectionName() +
                      " StudyInstanceUID: " + queryTask->studyInstanceUID());
         break;
       case ctkDICOMQueryTask::DICOMLevel::Instances:
-        logger.debug("ctkDICOMPoolManager: query task at instances level finished. "
+        logger.debug("ctkDICOMTaskPool: query task at instances level finished. "
                      "TaskUID: " + queryTask->taskUID() +
                      " Server: " + queryTask->server()->connectionName() +
                      " StudyInstanceUID: " + queryTask->studyInstanceUID() +
@@ -761,20 +761,20 @@ void ctkDICOMPoolManager::taskFinished()
       switch (retrieveTask->retrieveLevel())
         {
         case ctkDICOMRetrieveTask::DICOMLevel::Studies:
-          logger.debug("ctkDICOMPoolManager: retrieve task at studies level finished. "
+          logger.debug("ctkDICOMTaskPool: retrieve task at studies level finished. "
                        "TaskUID: " + retrieveTask->taskUID() +
                        " Server: " + retrieveTask->server()->connectionName() +
                        " StudyInstanceUID: " + retrieveTask->studyInstanceUID());
           break;
         case ctkDICOMRetrieveTask::DICOMLevel::Series:
-          logger.debug("ctkDICOMPoolManager: retrieve task at series level finished. "
+          logger.debug("ctkDICOMTaskPool: retrieve task at series level finished. "
                        "TaskUID: " + retrieveTask->taskUID() +
                        " Server: " + retrieveTask->server()->connectionName() +
                        " StudyInstanceUID: " + retrieveTask->studyInstanceUID() +
                        " SeriesInstanceUID: " + retrieveTask->seriesInstanceUID());
           break;
         case ctkDICOMRetrieveTask::DICOMLevel::Instances:
-          logger.debug("ctkDICOMPoolManager: retrieve task at instances level finished. "
+          logger.debug("ctkDICOMTaskPool: retrieve task at instances level finished. "
                        "TaskUID: " + retrieveTask->taskUID() +
                        " Server: " + retrieveTask->server()->connectionName() +
                        " StudyInstanceUID: " + retrieveTask->studyInstanceUID() +
@@ -805,9 +805,9 @@ void ctkDICOMPoolManager::taskFinished()
 }
 
 //----------------------------------------------------------------------------
-void ctkDICOMPoolManager::taskCanceled()
+void ctkDICOMTaskPool::taskCanceled()
 {
-  Q_D(ctkDICOMPoolManager);
+  Q_D(ctkDICOMTaskPool);
 
   ctkAbstractTask* task = qobject_cast<ctkAbstractTask*>(this->sender());
   if (!task)
@@ -821,18 +821,18 @@ void ctkDICOMPoolManager::taskCanceled()
     switch (queryTask->queryLevel())
       {
       case ctkDICOMQueryTask::DICOMLevel::Studies:
-        logger.debug("ctkDICOMPoolManager: query task at studies level canceled. "
+        logger.debug("ctkDICOMTaskPool: query task at studies level canceled. "
                      "TaskUID: " + queryTask->taskUID() +
                      " Server: " + queryTask->server()->connectionName());
         break;
       case ctkDICOMQueryTask::DICOMLevel::Series:
-        logger.debug("ctkDICOMPoolManager: query task at series level canceled. "
+        logger.debug("ctkDICOMTaskPool: query task at series level canceled. "
                      "TaskUID: " + queryTask->taskUID() +
                      " Server: " + queryTask->server()->connectionName() +
                      " StudyInstanceUID: " + queryTask->studyInstanceUID());
         break;
       case ctkDICOMQueryTask::DICOMLevel::Instances:
-        logger.debug("ctkDICOMPoolManager: query task at instances level canceled. "
+        logger.debug("ctkDICOMTaskPool: query task at instances level canceled. "
                      "TaskUID: " + queryTask->taskUID() +
                      " Server: " + queryTask->server()->connectionName() +
                      " StudyInstanceUID: " + queryTask->studyInstanceUID() +
@@ -860,16 +860,16 @@ void ctkDICOMPoolManager::taskCanceled()
       switch (queryTask->queryLevel())
         {
         case ctkDICOMQueryTask::DICOMLevel::Studies:
-          logger.warn("ctkDICOMPoolManager: query task at studies level failed. "
+          logger.warn("ctkDICOMTaskPool: query task at studies level failed. "
                       "Server: " + queryTask->server()->connectionName());
           break;
         case ctkDICOMQueryTask::DICOMLevel::Series:
-          logger.warn("ctkDICOMPoolManager: query task at series level failed. "
+          logger.warn("ctkDICOMTaskPool: query task at series level failed. "
                       "Server: " + queryTask->server()->connectionName() +
                       " StudyInstanceUID: " + queryTask->studyInstanceUID());
           break;
         case ctkDICOMQueryTask::DICOMLevel::Instances:
-          logger.warn("ctkDICOMPoolManager: query task at instances level failed. "
+          logger.warn("ctkDICOMTaskPool: query task at instances level failed. "
                       "Server: " + queryTask->server()->connectionName() +
                       " StudyInstanceUID: " + queryTask->studyInstanceUID() +
                       " SeriesInstanceUID: " + queryTask->seriesInstanceUID());
@@ -886,20 +886,20 @@ void ctkDICOMPoolManager::taskCanceled()
     switch (retrieveTask->retrieveLevel())
       {
       case ctkDICOMRetrieveTask::DICOMLevel::Studies:
-        logger.debug("ctkDICOMPoolManager: retrieve task at studies level canceled. "
+        logger.debug("ctkDICOMTaskPool: retrieve task at studies level canceled. "
                      "TaskUID: " + retrieveTask->taskUID() +
                      " Server: " + retrieveTask->server()->connectionName() +
                      " StudyInstanceUID: " + retrieveTask->studyInstanceUID());
         break;
       case ctkDICOMRetrieveTask::DICOMLevel::Series:
-        logger.debug("ctkDICOMPoolManager: retrieve task at series level canceled. "
+        logger.debug("ctkDICOMTaskPool: retrieve task at series level canceled. "
                      "TaskUID: " + retrieveTask->taskUID() +
                      " Server: " + retrieveTask->server()->connectionName() +
                      " StudyInstanceUID: " + retrieveTask->studyInstanceUID() +
                      " SeriesInstanceUID: " + retrieveTask->seriesInstanceUID());
         break;
       case ctkDICOMRetrieveTask::DICOMLevel::Instances:
-        logger.debug("ctkDICOMPoolManager: retrieve task at instances level canceled. "
+        logger.debug("ctkDICOMTaskPool: retrieve task at instances level canceled. "
                      "TaskUID: " + retrieveTask->taskUID() +
                      " Server: " + retrieveTask->server()->connectionName() +
                      " StudyInstanceUID: " + retrieveTask->studyInstanceUID() +
@@ -928,18 +928,18 @@ void ctkDICOMPoolManager::taskCanceled()
       switch (retrieveTask->retrieveLevel())
         {
         case ctkDICOMRetrieveTask::DICOMLevel::Studies:
-          logger.warn("ctkDICOMPoolManager: retrieve task at studies level failed. "
+          logger.warn("ctkDICOMTaskPool: retrieve task at studies level failed. "
                       "Server: " + retrieveTask->server()->connectionName() +
                       " StudyInstanceUID: " + retrieveTask->studyInstanceUID());
           break;
         case ctkDICOMRetrieveTask::DICOMLevel::Series:
-          logger.warn("ctkDICOMPoolManager: retrieve task at series level failed. "
+          logger.warn("ctkDICOMTaskPool: retrieve task at series level failed. "
                       "Server: " + retrieveTask->server()->connectionName() +
                       " StudyInstanceUID: " + retrieveTask->studyInstanceUID() +
                       " SeriesInstanceUID: " + retrieveTask->seriesInstanceUID());
           break;
         case ctkDICOMRetrieveTask::DICOMLevel::Instances:
-          logger.warn("ctkDICOMPoolManager: retrieve task at instances level failed. "
+          logger.warn("ctkDICOMTaskPool: retrieve task at instances level failed. "
                       "Server: " + retrieveTask->server()->connectionName() +
                       " StudyInstanceUID: " + retrieveTask->studyInstanceUID() +
                       " SeriesInstanceUID: " + retrieveTask->seriesInstanceUID() +
@@ -953,11 +953,11 @@ void ctkDICOMPoolManager::taskCanceled()
 }
 
 //----------------------------------------------------------------------------
-void ctkDICOMPoolManager::taskRetry(ctkAbstractTask *task)
+void ctkDICOMTaskPool::taskRetry(ctkAbstractTask *task)
 {
-  Q_D(ctkDICOMPoolManager);
+  Q_D(ctkDICOMTaskPool);
 
-  logger.debug("ctkDICOMPoolManager: retry task."
+  logger.debug("ctkDICOMTaskPool: retry task."
                "TaskUID: " + task->taskUID());
 
   QObject::connect(task, SIGNAL(started()), this, SLOT(taskStarted()), Qt::AutoConnection);

@@ -29,21 +29,21 @@
 
 // ctkDICOMCore includes
 #include "ctkDICOMIndexer.h"
-#include "ctkDICOMPoolManager.h"
+#include "ctkDICOMTaskPool.h"
 
 //------------------------------------------------------------------------------
-class ctkDICOMPoolManagerPrivate : public QObject
+class ctkDICOMTaskPoolPrivate : public QObject
 {
   Q_OBJECT
 
-  Q_DECLARE_PUBLIC( ctkDICOMPoolManager );
+  Q_DECLARE_PUBLIC( ctkDICOMTaskPool );
 
 protected:
-  ctkDICOMPoolManager* const q_ptr;
+  ctkDICOMTaskPool* const q_ptr;
 
 public:
-  ctkDICOMPoolManagerPrivate(ctkDICOMPoolManager& obj);
-  ~ctkDICOMPoolManagerPrivate();
+  ctkDICOMTaskPoolPrivate(ctkDICOMTaskPool& obj);
+  ~ctkDICOMTaskPoolPrivate();
 
   QString generateUniqueTaskUID();
   void init();
