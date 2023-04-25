@@ -139,6 +139,7 @@ void ctkDICOMStudyItemWidgetPrivate::createThumbnails(ctkDICOMTaskResults *taskR
 
   if (!this->DicomDatabase)
     {
+    logger.error("createThumbnails failed, no DICOM Database has been set. \n");
     return;
     }
 
@@ -500,6 +501,11 @@ void ctkDICOMStudyItemWidget::addSeriesItemWidget(const int& tableIndex,
                                                   const QString &seriesDescription)
 {
   Q_D(ctkDICOMStudyItemWidget);
+  if (!d->DicomDatabase)
+    {
+    logger.error("addSeriesItemWidget failed, no DICOM Database has been set. \n");
+    return;
+    }
 
   QString seriesNumber = d->DicomDatabase->fieldForSeries("SeriesNumber", seriesItem);
   ctkDICOMSeriesItemWidget* seriesItemWidget = new ctkDICOMSeriesItemWidget;
@@ -510,8 +516,8 @@ void ctkDICOMStudyItemWidget::addSeriesItemWidget(const int& tableIndex,
   seriesItemWidget->setModality(modality);
   seriesItemWidget->setSeriesDescription(seriesDescription);
   seriesItemWidget->setThumbnailSize(d->ThumbnailSize);
-  seriesItemWidget->setDicomDatabase(*d->DicomDatabase);
-  seriesItemWidget->setTaskPool(*d->TaskPool);
+  seriesItemWidget->setDicomDatabase(d->DicomDatabase);
+  seriesItemWidget->setTaskPool(d->TaskPool);
   seriesItemWidget->generateInstances();
   seriesItemWidget->setContextMenuPolicy(Qt::CustomContextMenu);
 
@@ -566,13 +572,7 @@ void ctkDICOMStudyItemWidget::removeSeriesItemWidget(const QString& seriesItem)
 void ctkDICOMStudyItemWidget::generateSeries()
 {
   Q_D(ctkDICOMStudyItemWidget);
-
-  if (!d->TaskPool)
-    {
-    return;
-    }
-
-  if (d->TaskPool->getNumberOfServers() > 0)
+  if (d->TaskPool && d->TaskPool->getNumberOfServers() > 0)
     {
     d->TaskPool->querySeries(d->StudyInstanceUID,
                                 QThread::NormalPriority);

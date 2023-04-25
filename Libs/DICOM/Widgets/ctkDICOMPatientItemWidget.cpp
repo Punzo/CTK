@@ -407,6 +407,12 @@ void ctkDICOMPatientItemWidget::addStudyItemWidget(const QString &studyItem)
 {
   Q_D(ctkDICOMPatientItemWidget);
 
+  if (!d->DicomDatabase)
+    {
+    logger.error("addStudyItemWidget failed, no DICOM Database has been set. \n");
+    return;
+    }
+
   QString studyInstanceUID = d->DicomDatabase->fieldForStudy("StudyInstanceUID", studyItem);
   QString studyID = d->DicomDatabase->fieldForStudy("StudyID", studyItem);
   QString studyDate = d->DicomDatabase->fieldForStudy("StudyDate", studyItem);
@@ -433,8 +439,8 @@ void ctkDICOMPatientItemWidget::addStudyItemWidget(const QString &studyItem)
     }
   studyItemWidget->setFilteringSeriesDescription(d->FilteringSeriesDescription);
   studyItemWidget->setFilteringModalities(d->FilteringModalities);
-  studyItemWidget->setDicomDatabase(*d->DicomDatabase);
-  studyItemWidget->setTaskPool(*d->TaskPool);
+  studyItemWidget->setDicomDatabase(d->DicomDatabase);
+  studyItemWidget->setTaskPool(d->TaskPool);
   studyItemWidget->generateSeries();
   studyItemWidget->setContextMenuPolicy(Qt::CustomContextMenu);
 
@@ -474,6 +480,7 @@ void ctkDICOMPatientItemWidget::updateGUIFromPatientSelection()
 
   if (!d->DicomDatabase)
     {
+    logger.error("updateGUIFromPatientSelection failed, no DICOM Database has been set. \n");
     return;
     }
 

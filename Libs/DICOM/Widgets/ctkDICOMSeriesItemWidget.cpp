@@ -118,7 +118,13 @@ void ctkDICOMSeriesItemWidgetPrivate::init()
 //----------------------------------------------------------------------------
 QString ctkDICOMSeriesItemWidgetPrivate::getDICOMCenterFrameFromInstances(QStringList instancesList)
 {
-  if (instancesList.count() == 0 || !this->DicomDatabase)
+  if (!this->DicomDatabase)
+    {
+    logger.error("getDICOMCenterFrameFromInstances failed, no DICOM Database has been set. \n");
+    return "";
+    }
+
+  if (instancesList.count() == 0)
     {
     return "";
     }
@@ -162,8 +168,9 @@ QString ctkDICOMSeriesItemWidgetPrivate::getDICOMCenterFrameFromInstances(QStrin
 //----------------------------------------------------------------------------
 void ctkDICOMSeriesItemWidgetPrivate::createThumbnail(ctkDICOMTaskResults *taskResults)
 {
-  if (!this->DicomDatabase || !this->TaskPool)
+  if (!this->DicomDatabase)
     {
+    logger.error("importFiles failed, no DICOM Database has been set. \n");
     return;
     }
 
@@ -236,7 +243,7 @@ void ctkDICOMSeriesItemWidgetPrivate::createThumbnail(ctkDICOMTaskResults *taskR
     file = this->DicomDatabase->fileForInstance(this->CentralFrameSOPInstanceUID);
     }
 
-  if (this->TaskPool->getNumberOfServers() > 0)
+  if (this->TaskPool && this->TaskPool->getNumberOfServers() > 0)
     {
     // Get file for thumbnail
     if (file.contains("server://") && (typeOfTask == ctkDICOMTaskResults::TaskType::FileIndexing ||
@@ -289,6 +296,12 @@ void ctkDICOMSeriesItemWidgetPrivate::createThumbnail(ctkDICOMTaskResults *taskR
 //----------------------------------------------------------------------------
 void ctkDICOMSeriesItemWidgetPrivate::drawThumbnail(const QString &file, int numberOfFrames)
 {
+  if (!this->DicomDatabase)
+    {
+    logger.error("drawThumbnail failed, no DICOM Database has been set. \n");
+    return;
+    }
+
   int margin = 10;
   int fontSize = 12;
   if (!this->SeriesThumbnail->text().isEmpty())
@@ -374,6 +387,12 @@ void ctkDICOMSeriesItemWidgetPrivate::updateThumbnailProgressBar(const int& prog
 //----------------------------------------------------------------------------
 void ctkDICOMSeriesItemWidgetPrivate::raiseRetrieveFramesTasksPriority()
 {
+  if (!this->TaskPool)
+    {
+    logger.error("raiseRetrieveFramesTasksPriority failed, no task pool has been set. \n");
+    return;
+    }
+
   if (!this->IsCloud || this->TaskPool->getNumberOfServers() == 0)
     {
     return;
@@ -612,9 +631,9 @@ void ctkDICOMSeriesItemWidget::setDicomDatabase(QSharedPointer<ctkDICOMDatabase>
 void ctkDICOMSeriesItemWidget::generateInstances()
 {
   Q_D(ctkDICOMSeriesItemWidget);
-
-  if (!d->TaskPool)
+  if (!d->DicomDatabase)
     {
+    logger.error("generateInstances failed, no DICOM Database has been set. \n");
     return;
     }
 
@@ -623,7 +642,7 @@ void ctkDICOMSeriesItemWidget::generateInstances()
   // NOTE1: What if we have some instance metadata locally, but on the server they have been updated?
   // NOTE2: Usually DICOM does not allow updating instances,
   //        the user should submit to the server a new series with different SeriesInstanceUID
-  if (instancesList.count() == 0 && d->TaskPool->getNumberOfServers() > 0)
+  if (instancesList.count() == 0 && d->TaskPool && d->TaskPool->getNumberOfServers() > 0)
     {
     d->TaskPool->queryInstances(d->StudyInstanceUID, d->SeriesInstanceUID, QThread::NormalPriority);
     }
