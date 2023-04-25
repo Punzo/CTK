@@ -277,7 +277,14 @@ static void skipDelete(QObject* obj)
 }
 
 //----------------------------------------------------------------------------
-QSharedPointer<ctkDICOMDatabase> ctkDICOMPoolManager::dicomDatabase()const
+ctkDICOMDatabase* ctkDICOMPoolManager::dicomDatabase()const
+{
+  Q_D(const ctkDICOMPoolManager);
+  return d->DicomDatabase.data();
+}
+
+//----------------------------------------------------------------------------
+QSharedPointer<ctkDICOMDatabase> ctkDICOMPoolManager::dicomDatabaseShared()const
 {
   Q_D(const ctkDICOMPoolManager);
   return d->DicomDatabase;
@@ -288,7 +295,21 @@ void ctkDICOMPoolManager::setDicomDatabase(ctkDICOMDatabase& dicomDatabase)
 {
   Q_D(ctkDICOMPoolManager);
   d->DicomDatabase = QSharedPointer<ctkDICOMDatabase>(&dicomDatabase, skipDelete);
-  d->Indexer->setDatabase(d->DicomDatabase.data());
+  if (d->Indexer)
+    {
+    d->Indexer->setDatabase(d->DicomDatabase.data());
+    }
+}
+
+//----------------------------------------------------------------------------
+void ctkDICOMPoolManager::setDicomDatabase(QSharedPointer<ctkDICOMDatabase> dicomDatabase)
+{
+  Q_D(ctkDICOMPoolManager);
+  d->DicomDatabase = dicomDatabase;
+  if (d->Indexer)
+    {
+    d->Indexer->setDatabase(d->DicomDatabase.data());
+    }
 }
 
 //----------------------------------------------------------------------------
