@@ -31,7 +31,7 @@
 
 class ctkDICOMSeriesItemWidgetPrivate;
 class ctkDICOMDatabase;
-class ctkDICOMPoolManager;
+class ctkDICOMTaskPool;
 class ctkDICOMTaskResults;
 
 /// \ingroup DICOM_Widgets
@@ -90,15 +90,15 @@ public:
   void setThumbnailSize(int thumbnailSize);
   int thumbnailSize() const;
 
-  /// Pool manager and dicom database references
+  /// task pool and dicom database references
   Q_INVOKABLE QSharedPointer<ctkDICOMDatabase> dicomDatabase()const;
   Q_INVOKABLE void setDicomDatabase(ctkDICOMDatabase& dicomDatabase);
-  Q_INVOKABLE QSharedPointer<ctkDICOMPoolManager> poolManager()const;
-  Q_INVOKABLE void setPoolManager(ctkDICOMPoolManager& poolManager);
+  Q_INVOKABLE QSharedPointer<ctkDICOMTaskPool> TaskPool()const;
+  Q_INVOKABLE void setTaskPool(ctkDICOMTaskPool& TaskPool);
 
 public Q_SLOTS:
   void generateInstances();
-  void updateGUIFromPoolManager(ctkDICOMTaskResults*);
+  void updateGUIFromTaskPool(ctkDICOMTaskResults*);
 
 protected:
   QScopedPointer<ctkDICOMSeriesItemWidgetPrivate> d_ptr;

@@ -34,7 +34,7 @@
 
 // ctkDICOMCore includes
 #include "ctkDICOMDatabase.h"
-#include "ctkDICOMPoolManager.h"
+#include "ctkDICOMTaskPool.h"
 #include "ctkDICOMTaskResults.h"
 #include "ctkDICOMThumbnailGenerator.h"
 
@@ -68,7 +68,7 @@ public:
   void raiseRetrieveFramesTasksPriority();
 
   QSharedPointer<ctkDICOMDatabase> DicomDatabase;
-  QSharedPointer<ctkDICOMPoolManager> PoolManager;
+  QSharedPointer<ctkDICOMTaskPool> TaskPool;
 
   QString SeriesItem;
   QString StudyInstanceUID;
@@ -98,7 +98,7 @@ ctkDICOMSeriesItemWidgetPrivate::ctkDICOMSeriesItemWidgetPrivate(ctkDICOMSeriesI
   this->ThumbnailSize = 300;
 
   this->DicomDatabase = nullptr;
-  this->PoolManager = nullptr;
+  this->TaskPool = nullptr;
 }
 
 //----------------------------------------------------------------------------
@@ -162,7 +162,7 @@ QString ctkDICOMSeriesItemWidgetPrivate::getDICOMCenterFrameFromInstances(QStrin
 //----------------------------------------------------------------------------
 void ctkDICOMSeriesItemWidgetPrivate::createThumbnail(ctkDICOMTaskResults *taskResults)
 {
-  if (!this->DicomDatabase || !this->PoolManager)
+  if (!this->DicomDatabase || !this->TaskPool)
     {
     return;
     }
@@ -236,13 +236,13 @@ void ctkDICOMSeriesItemWidgetPrivate::createThumbnail(ctkDICOMTaskResults *taskR
     file = this->DicomDatabase->fileForInstance(this->CentralFrameSOPInstanceUID);
     }
 
-  if (this->PoolManager->getNumberOfServers() > 0)
+  if (this->TaskPool->getNumberOfServers() > 0)
     {
     // Get file for thumbnail
     if (file.contains("server://") && (typeOfTask == ctkDICOMTaskResults::TaskType::FileIndexing ||
                                        typeOfTask == ctkDICOMTaskResults::TaskType::QueryInstances))
       {
-      this->PoolManager->retrieveSOPInstance(this->StudyInstanceUID,
+      this->TaskPool->retrieveSOPInstance(this->StudyInstanceUID,
                                              this->SeriesInstanceUID,
                                              this->CentralFrameSOPInstanceUID,
                                              QThread::NormalPriority);
@@ -266,7 +266,7 @@ void ctkDICOMSeriesItemWidgetPrivate::createThumbnail(ctkDICOMTaskResults *taskR
           continue;
           }
 
-        this->PoolManager->retrieveSOPInstance(this->StudyInstanceUID,
+        this->TaskPool->retrieveSOPInstance(this->StudyInstanceUID,
                                                this->SeriesInstanceUID,
                                                sopInstanceUID);
         }
@@ -374,13 +374,13 @@ void ctkDICOMSeriesItemWidgetPrivate::updateThumbnailProgressBar(const int& prog
 //----------------------------------------------------------------------------
 void ctkDICOMSeriesItemWidgetPrivate::raiseRetrieveFramesTasksPriority()
 {
-  if (!this->IsCloud || this->PoolManager->getNumberOfServers() == 0)
+  if (!this->IsCloud || this->TaskPool->getNumberOfServers() == 0)
     {
     return;
     }
 
   // Check if any retrieve task is in queue and rerun with higher priority if yes.
-  this->PoolManager->raiseRetrieveFramesTasksPriorityForSeries(this->StudyInstanceUID,
+  this->TaskPool->raiseRetrieveFramesTasksPriorityForSeries(this->StudyInstanceUID,
                                                                this->SeriesInstanceUID);
 }
 
@@ -543,29 +543,29 @@ QSharedPointer<ctkDICOMDatabase> ctkDICOMSeriesItemWidget::dicomDatabase()const
 }
 
 //----------------------------------------------------------------------------
-void ctkDICOMSeriesItemWidget::setPoolManager(ctkDICOMPoolManager& poolManager)
+void ctkDICOMSeriesItemWidget::setTaskPool(ctkDICOMTaskPool& TaskPool)
 {
   Q_D(ctkDICOMSeriesItemWidget);
-  if (d->PoolManager)
+  if (d->TaskPool)
     {
-    QObject::disconnect(d->PoolManager.data(), SIGNAL(progressTaskDetail(ctkDICOMTaskResults*)),
-                       this, SLOT(updateGUIFromPoolManager(ctkDICOMTaskResults*)));
+    QObject::disconnect(d->TaskPool.data(), SIGNAL(progressTaskDetail(ctkDICOMTaskResults*)),
+                       this, SLOT(updateGUIFromTaskPool(ctkDICOMTaskResults*)));
     }
 
-  d->PoolManager = QSharedPointer<ctkDICOMPoolManager>(&poolManager, skipDelete);
+  d->TaskPool = QSharedPointer<ctkDICOMTaskPool>(&TaskPool, skipDelete);
 
-  if (d->PoolManager)
+  if (d->TaskPool)
     {
-    QObject::connect(d->PoolManager.data(), SIGNAL(progressTaskDetail(ctkDICOMTaskResults*)),
-                     this, SLOT(updateGUIFromPoolManager(ctkDICOMTaskResults*)));
+    QObject::connect(d->TaskPool.data(), SIGNAL(progressTaskDetail(ctkDICOMTaskResults*)),
+                     this, SLOT(updateGUIFromTaskPool(ctkDICOMTaskResults*)));
     }
 }
 
 //----------------------------------------------------------------------------
-QSharedPointer<ctkDICOMPoolManager> ctkDICOMSeriesItemWidget::poolManager()const
+QSharedPointer<ctkDICOMTaskPool> ctkDICOMSeriesItemWidget::TaskPool()const
 {
   Q_D(const ctkDICOMSeriesItemWidget);
-  return d->PoolManager;
+  return d->TaskPool;
 }
 
 //------------------------------------------------------------------------------
@@ -573,7 +573,7 @@ void ctkDICOMSeriesItemWidget::generateInstances()
 {
   Q_D(ctkDICOMSeriesItemWidget);
 
-  if (!d->PoolManager)
+  if (!d->TaskPool)
     {
     return;
     }
@@ -583,9 +583,9 @@ void ctkDICOMSeriesItemWidget::generateInstances()
   // NOTE1: What if we have some instance metadata locally, but on the server they have been updated?
   // NOTE2: Usually DICOM does not allow updating instances,
   //        the user should submit to the server a new series with different SeriesInstanceUID
-  if (instancesList.count() == 0 && d->PoolManager->getNumberOfServers() > 0)
+  if (instancesList.count() == 0 && d->TaskPool->getNumberOfServers() > 0)
     {
-    d->PoolManager->queryInstances(d->StudyInstanceUID, d->SeriesInstanceUID, QThread::NormalPriority);
+    d->TaskPool->queryInstances(d->StudyInstanceUID, d->SeriesInstanceUID, QThread::NormalPriority);
     }
   else
     {
@@ -594,7 +594,7 @@ void ctkDICOMSeriesItemWidget::generateInstances()
 }
 
 //----------------------------------------------------------------------------
-void ctkDICOMSeriesItemWidget::updateGUIFromPoolManager(ctkDICOMTaskResults *taskResults)
+void ctkDICOMSeriesItemWidget::updateGUIFromTaskPool(ctkDICOMTaskResults *taskResults)
 {
   Q_D(ctkDICOMSeriesItemWidget);
 

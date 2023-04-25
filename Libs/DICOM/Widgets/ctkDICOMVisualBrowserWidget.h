@@ -77,16 +77,16 @@ public:
   /// @see databaseDirectoryBase, setDatabaseDirectory
   void setDatabaseDirectoryBase(const QString& base);
 
-  /// Return the Pool Manager.
-  Q_INVOKABLE ctkDICOMPoolManager* poolManager() const;
-  /// Return the Pool Manager as a shared pointer
+  /// Return the task pool.
+  Q_INVOKABLE ctkDICOMTaskPool* TaskPool() const;
+  /// Return the task pool as a shared pointer
   /// (not Python-wrappable).
-  QSharedPointer<ctkDICOMPoolManager> poolManagerShared() const;
-  /// Set the Pool Manager.
-  Q_INVOKABLE void setPoolManager(ctkDICOMPoolManager& poolManager);
-  /// Set the Pool Manager as a shared pointer
+  QSharedPointer<ctkDICOMTaskPool> TaskPoolShared() const;
+  /// Set the task pool.
+  Q_INVOKABLE void setTaskPool(ctkDICOMTaskPool& TaskPool);
+  /// Set the task pool as a shared pointer
   /// (not Python-wrappable).
-  void setPoolManager(QSharedPointer<ctkDICOMPoolManager> poolManager);
+  void setTaskPool(QSharedPointer<ctkDICOMTaskPool> TaskPool);
 
   /// Return the Dicom Database.
   Q_INVOKABLE ctkDICOMDatabase* dicomDatabase() const;
@@ -248,7 +248,7 @@ public Q_SLOTS:
   void onFilteringModalityCheckableComboBoxChanged();
   void onFilteringDateComboBoxChanged(int);
   void onQueryPatient(bool forceFiltersEmpty = false);
-  void updateGUIFromPoolManager(ctkDICOMTaskResults*);
+  void updateGUIFromTaskPool(ctkDICOMTaskResults*);
   void onPatientItemChanged(int);
   void onClose();
   void onLoad();

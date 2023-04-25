@@ -21,8 +21,8 @@
 
 =========================================================================*/
 
-#ifndef __ctkDICOMPoolManager_h
-#define __ctkDICOMPoolManager_h
+#ifndef __ctkDICOMTaskPool_h
+#define __ctkDICOMTaskPool_h
 
 // Qt includes 
 #include <QObject>
@@ -36,12 +36,12 @@
 
 class ctkAbstractTask;
 class ctkDICOMIndexer;
-class ctkDICOMPoolManagerPrivate;
+class ctkDICOMTaskPoolPrivate;
 class ctkDICOMServer;
 class ctkDICOMTaskResults;
 
 /// \ingroup DICOM_Core
-class CTK_DICOM_CORE_EXPORT ctkDICOMPoolManager : public ctkAbstractTaskPool
+class CTK_DICOM_CORE_EXPORT ctkDICOMTaskPool : public ctkAbstractTaskPool
 {
   Q_OBJECT
   Q_PROPERTY(int maximumThreadCount READ maximumThreadCount WRITE setMaximumThreadCount);
@@ -50,8 +50,8 @@ class CTK_DICOM_CORE_EXPORT ctkDICOMPoolManager : public ctkAbstractTaskPool
 
 public:
   typedef ctkAbstractTaskPool Superclass;
-  explicit ctkDICOMPoolManager(QObject* parent = 0);
-  virtual ~ctkDICOMPoolManager();
+  explicit ctkDICOMTaskPool(QObject* parent = 0);
+  virtual ~ctkDICOMTaskPool();
 
   /// Query Studies applying filters on all servers.
   /// The method spans a ctkDICOMQueryStudiesWorker for each server.
@@ -141,12 +141,12 @@ public:
                                                              const QString& seriesInstanceUID,
                                                              QThread::Priority priority = QThread::HighPriority);
 
-  /// Maximum number of concurrent Qthread span by the threadPool in the pool manager
+  /// Maximum number of concurrent Qthread span by the threadPool in the task pool
   /// NOTE: there is another Qthread span by the ctkDICOMIndexer which is not count in this variable.
   /// default: cpu threads on the system
   int maximumThreadCount() const;
   void setMaximumThreadCount(const int& maximumThreadCount);
-  /// Maximum number of retries that the pool manager will try on each failed task
+  /// Maximum number of retries that the task pool will try on each failed task
   /// default: 3
   int maximumNumberOfRetry() const;
   void setMaximumNumberOfRetry(const int& maximumNumberOfRetry);
@@ -170,11 +170,11 @@ public Q_SLOTS:
    void taskRetry(ctkAbstractTask* task);
 
 protected:
-  QScopedPointer<ctkDICOMPoolManagerPrivate> d_ptr;
+  QScopedPointer<ctkDICOMTaskPoolPrivate> d_ptr;
 
 private:
-  Q_DECLARE_PRIVATE(ctkDICOMPoolManager);
-  Q_DISABLE_COPY(ctkDICOMPoolManager);
+  Q_DECLARE_PRIVATE(ctkDICOMTaskPool);
+  Q_DISABLE_COPY(ctkDICOMTaskPool);
 };
 
 #endif

@@ -29,7 +29,7 @@
 
 // ctkDICOMCore includes
 #include "ctkDICOMDatabase.h"
-#include "ctkDICOMPoolManager.h"
+#include "ctkDICOMTaskPool.h"
 
 // ctkDICOMWidgets includes
 #include "ctkDICOMStudyItemWidget.h"
@@ -58,7 +58,7 @@ public:
   void clearLayout(QLayout* layout, bool deleteWidgets = true);
 
   QSharedPointer<ctkDICOMDatabase> DicomDatabase;
-  QSharedPointer<ctkDICOMPoolManager> PoolManager;
+  QSharedPointer<ctkDICOMTaskPool> TaskPool;
 
   int NumberOfSeriesPerRow;
 
@@ -85,7 +85,7 @@ ctkDICOMPatientItemWidgetPrivate::ctkDICOMPatientItemWidgetPrivate(ctkDICOMPatie
   this->NumberOfSeriesPerRow = 6;
 
   this->DicomDatabase = nullptr;
-  this->PoolManager = nullptr;
+  this->TaskPool = nullptr;
 }
 
 //----------------------------------------------------------------------------
@@ -325,17 +325,17 @@ QSharedPointer<ctkDICOMDatabase> ctkDICOMPatientItemWidget::dicomDatabase()const
 }
 
 //----------------------------------------------------------------------------
-void ctkDICOMPatientItemWidget::setPoolManager(ctkDICOMPoolManager& poolManager)
+void ctkDICOMPatientItemWidget::setTaskPool(ctkDICOMTaskPool& TaskPool)
 {
   Q_D(ctkDICOMPatientItemWidget);
-  d->PoolManager = QSharedPointer<ctkDICOMPoolManager>(&poolManager, skipDelete);
+  d->TaskPool = QSharedPointer<ctkDICOMTaskPool>(&TaskPool, skipDelete);
 }
 
 //----------------------------------------------------------------------------
-QSharedPointer<ctkDICOMPoolManager> ctkDICOMPatientItemWidget::poolManager()const
+QSharedPointer<ctkDICOMTaskPool> ctkDICOMPatientItemWidget::TaskPool()const
 {
   Q_D(const ctkDICOMPatientItemWidget);
-  return d->PoolManager;
+  return d->TaskPool;
 }
 
 //------------------------------------------------------------------------------
@@ -406,7 +406,7 @@ void ctkDICOMPatientItemWidget::addStudyItemWidget(const QString &studyItem)
   studyItemWidget->setFilteringSeriesDescription(d->FilteringSeriesDescription);
   studyItemWidget->setFilteringModalities(d->FilteringModalities);
   studyItemWidget->setDicomDatabase(*d->DicomDatabase);
-  studyItemWidget->setPoolManager(*d->PoolManager);
+  studyItemWidget->setTaskPool(*d->TaskPool);
   studyItemWidget->generateSeries();
   studyItemWidget->setContextMenuPolicy(Qt::CustomContextMenu);
 

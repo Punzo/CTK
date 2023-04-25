@@ -31,7 +31,7 @@
 
 class ctkDICOMStudyItemWidgetPrivate;
 class ctkDICOMDatabase;
-class ctkDICOMPoolManager;
+class ctkDICOMTaskPool;
 class ctkDICOMTaskResults;
 
 class QTableWidget;
@@ -92,11 +92,11 @@ public:
   void setFilteringModalities(const QStringList& filteringModalities);
   QStringList filteringModalities() const;
 
-  /// Pool manager and dicom database references
+  /// task pool and dicom database references
   Q_INVOKABLE QSharedPointer<ctkDICOMDatabase> dicomDatabase()const;
   Q_INVOKABLE void setDicomDatabase(ctkDICOMDatabase& dicomDatabase);
-  Q_INVOKABLE QSharedPointer<ctkDICOMPoolManager> poolManager()const;
-  Q_INVOKABLE void setPoolManager(ctkDICOMPoolManager& poolManager);
+  Q_INVOKABLE QSharedPointer<ctkDICOMTaskPool> TaskPool()const;
+  Q_INVOKABLE void setTaskPool(ctkDICOMTaskPool& TaskPool);
 
   /// Series list table.
   Q_INVOKABLE QTableWidget* seriesListTableWidget();
@@ -111,7 +111,7 @@ public:
 
 public Q_SLOTS:
   void generateSeries();
-  void updateGUIFromPoolManager(ctkDICOMTaskResults*);
+  void updateGUIFromTaskPool(ctkDICOMTaskResults*);
 
 protected:
   QScopedPointer<ctkDICOMStudyItemWidgetPrivate> d_ptr;
