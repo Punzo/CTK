@@ -77,13 +77,27 @@ public:
   /// @see databaseDirectoryBase, setDatabaseDirectory
   void setDatabaseDirectoryBase(const QString& base);
 
-  /// Pool Manager
-  Q_INVOKABLE QSharedPointer<ctkDICOMPoolManager> poolManager()const;
+  /// Return the Pool Manager.
+  Q_INVOKABLE ctkDICOMPoolManager* poolManager() const;
+  /// Return the Pool Manager as a shared pointer
+  /// (not Python-wrappable).
+  QSharedPointer<ctkDICOMPoolManager> poolManagerShared() const;
+  /// Set the Pool Manager.
   Q_INVOKABLE void setPoolManager(ctkDICOMPoolManager& poolManager);
+  /// Set the Pool Manager as a shared pointer
+  /// (not Python-wrappable).
+  void setPoolManager(QSharedPointer<ctkDICOMPoolManager> poolManager);
 
-  /// Dicom Database
-  Q_INVOKABLE QSharedPointer<ctkDICOMDatabase> dicomDatabase()const;
+  /// Return the Dicom Database.
+  Q_INVOKABLE ctkDICOMDatabase* dicomDatabase() const;
+  /// Return Dicom Database as a shared pointer
+  /// (not Python-wrappable).
+  QSharedPointer<ctkDICOMDatabase> dicomDatabaseShared() const;
+  /// Set the Dicom Database.
   Q_INVOKABLE void setDicomDatabase(ctkDICOMDatabase& dicomDatabase);
+  /// Set the Dicom Database as a shared pointer
+  /// (not Python-wrappable).
+  void setDicomDatabase(QSharedPointer<ctkDICOMDatabase> dicomDatabase);
 
   /// See ctkDICOMDatabase for description - these accessors
   /// delegate to the corresponding routines of the internal

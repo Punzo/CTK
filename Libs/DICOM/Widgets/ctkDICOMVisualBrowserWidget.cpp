@@ -125,11 +125,13 @@ public:
   ~ctkDICOMVisualBrowserWidgetPrivate();
 
   void init();
+  void disconnectPoolManager();
+  void connectPoolManager();
   void importDirectory(QString directory, ctkDICOMVisualBrowserWidget::ImportDirectoryMode mode);
   void importFiles(const QStringList& files, ctkDICOMVisualBrowserWidget::ImportDirectoryMode mode);
   void importOldSettings();
   void updateModalityCheckableComboBox();
-  void updateGUIOnQueryPatient(ctkDICOMTaskResults *taskResults = nullptr);
+  void updateGUIOnQueryPatient();
   void updateFiltersWarnings();
   void retrieveSeries();
   bool updateServer(ctkDICOMServer* server);
@@ -337,10 +339,59 @@ void ctkDICOMVisualBrowserWidgetPrivate::init()
 }
 
 //----------------------------------------------------------------------------
+void ctkDICOMVisualBrowserWidgetPrivate::disconnectPoolManager()
+{
+  Q_Q(ctkDICOMVisualBrowserWidget);
+  if (!this->PoolManager)
+    {
+    return;
+    }
+
+  ctkDICOMVisualBrowserWidget::disconnect(this->PoolManager.data(), SIGNAL(progressTaskDetail(ctkDICOMTaskResults*)),
+                                          q, SLOT(updateGUIFromPoolManager(ctkDICOMTaskResults*)));
+  ctkDICOMVisualBrowserWidget::disconnect(this->ProgressCancelButton, SIGNAL(clicked()), this->PoolManager->Indexer().data(), SLOT(cancel()));
+  ctkDICOMVisualBrowserWidget::disconnect(this->PoolManager->Indexer().data(), SIGNAL(progress(int)), q, SLOT(onIndexingProgress(int)));
+  ctkDICOMVisualBrowserWidget::disconnect(this->PoolManager->Indexer().data(), SIGNAL(progressStep(QString)),q, SLOT(onIndexingProgressStep(QString)));
+  ctkDICOMVisualBrowserWidget::disconnect(this->PoolManager->Indexer().data(), SIGNAL(progressDetail(QString)), q, SLOT(onIndexingProgressDetail(QString)));
+  ctkDICOMVisualBrowserWidget::disconnect(this->PoolManager->Indexer().data(), SIGNAL(indexingComplete(int,int,int,int)), q, SLOT(onIndexingComplete(int,int,int,int)));
+}
+
+//----------------------------------------------------------------------------
+void ctkDICOMVisualBrowserWidgetPrivate::connectPoolManager()
+{
+  Q_Q(ctkDICOMVisualBrowserWidget);
+  if (!this->PoolManager)
+    {
+    return;
+    }
+
+  ctkDICOMVisualBrowserWidget::connect(this->PoolManager.data(), SIGNAL(progressTaskDetail(ctkDICOMTaskResults*)),
+                                       q, SLOT(updateGUIFromPoolManager(ctkDICOMTaskResults*)));
+  ctkDICOMVisualBrowserWidget::connect(this->ProgressCancelButton, SIGNAL(clicked()), this->PoolManager->Indexer().data(), SLOT(cancel()));
+  ctkDICOMVisualBrowserWidget::connect(this->PoolManager->Indexer().data(), SIGNAL(progress(int)), q, SLOT(onIndexingProgress(int)));
+  ctkDICOMVisualBrowserWidget::connect(this->PoolManager->Indexer().data(), SIGNAL(progressStep(QString)),q, SLOT(onIndexingProgressStep(QString)));
+  ctkDICOMVisualBrowserWidget::connect(this->PoolManager->Indexer().data(), SIGNAL(progressDetail(QString)), q, SLOT(onIndexingProgressDetail(QString)));
+  ctkDICOMVisualBrowserWidget::connect(this->PoolManager->Indexer().data(), SIGNAL(indexingComplete(int,int,int,int)), q, SLOT(onIndexingComplete(int,int,int,int)));
+}
+
+//----------------------------------------------------------------------------
 void ctkDICOMVisualBrowserWidgetPrivate::importDirectory(QString directory, ctkDICOMVisualBrowserWidget::ImportDirectoryMode mode)
 {
-  if (!QDir(directory).exists() || !this->PoolManager)
+  if (!this->DicomDatabase)
     {
+    logger.error(ctkDICOMVisualBrowserWidget::tr("importDirectory failed, no DICOM Database has been set. \n"));
+    return;
+    }
+
+  if (!this->PoolManager || !this->PoolManager->Indexer())
+    {
+    logger.error(ctkDICOMVisualBrowserWidget::tr("importDirectory failed, no Pool Manager has been set. \n"));
+    return;
+    }
+
+  if (!QDir(directory).exists())
+    {
+    logger.error(ctkDICOMVisualBrowserWidget::tr("importDirectory failed, input directory %1 does not exist. \n").arg(directory));
     return;
     }
   // Start background indexing
@@ -350,8 +401,15 @@ void ctkDICOMVisualBrowserWidgetPrivate::importDirectory(QString directory, ctkD
 //----------------------------------------------------------------------------
 void ctkDICOMVisualBrowserWidgetPrivate::importFiles(const QStringList &files, ctkDICOMVisualBrowserWidget::ImportDirectoryMode mode)
 {
-  if (!this->PoolManager)
+  if (!this->DicomDatabase)
     {
+    logger.error(ctkDICOMVisualBrowserWidget::tr("importFiles failed, no DICOM Database has been set. \n"));
+    return;
+    }
+
+  if (!this->PoolManager || !this->PoolManager->Indexer())
+    {
+    logger.error(ctkDICOMVisualBrowserWidget::tr("importFiles failed, no Pool Manager has been set. \n"));
     return;
     }
 
@@ -452,11 +510,12 @@ void ctkDICOMVisualBrowserWidgetPrivate::updateModalityCheckableComboBox()
 }
 
 //----------------------------------------------------------------------------
-void ctkDICOMVisualBrowserWidgetPrivate::updateGUIOnQueryPatient(ctkDICOMTaskResults *taskResults)
+void ctkDICOMVisualBrowserWidgetPrivate::updateGUIOnQueryPatient()
 {
   Q_Q(ctkDICOMVisualBrowserWidget);
   if (!this->DicomDatabase || !this->PoolManager)
     {
+    logger.error(ctkDICOMVisualBrowserWidget::tr("updateGUIOnQueryPatient failed, no Pool Manager and/or DICOM database has been set. \n"));
     return;
     }
 
@@ -497,6 +556,7 @@ void ctkDICOMVisualBrowserWidgetPrivate::updateFiltersWarnings()
 {
   if (!this->DicomDatabase)
     {
+    logger.error(ctkDICOMVisualBrowserWidget::tr("updateFiltersWarnings failed, no DICOM database has been set. \n"));
     return;
     }
 
@@ -597,6 +657,7 @@ void ctkDICOMVisualBrowserWidgetPrivate::retrieveSeries()
   Q_Q(ctkDICOMVisualBrowserWidget);
   if (!this->PoolManager)
     {
+    logger.error(ctkDICOMVisualBrowserWidget::tr("retrieveSeries failed, no Pool Manager has been set. \n"));
     return;
     }
 
@@ -728,6 +789,7 @@ QStringList ctkDICOMVisualBrowserWidgetPrivate::filterPatientList(const QStringL
   QStringList filteredPatientList;
   if (!this->DicomDatabase)
     {
+    logger.error(ctkDICOMVisualBrowserWidget::tr("filterPatientList failed, no DICOM Database has been set. \n"));
     return filteredPatientList;
     }
 
@@ -753,6 +815,7 @@ QStringList ctkDICOMVisualBrowserWidgetPrivate::filterStudyList(const QStringLis
   QStringList filteredStudyList;
   if (!this->DicomDatabase)
     {
+    logger.error(ctkDICOMVisualBrowserWidget::tr("filterStudyList failed, no DICOM Database has been set. \n"));
     return filteredStudyList;
     }
 
@@ -793,6 +856,7 @@ QStringList ctkDICOMVisualBrowserWidgetPrivate::filterSeriesList(const QStringLi
   QStringList filteredSeriesList;
   if (!this->DicomDatabase)
     {
+    logger.error(ctkDICOMVisualBrowserWidget::tr("filterSeriesList failed, no DICOM Database has been set. \n"));
     return filteredSeriesList;
     }
 
@@ -818,6 +882,7 @@ QStringList ctkDICOMVisualBrowserWidgetPrivate::filterSeriesList(const QStringLi
   QStringList filteredSeriesList;
   if (!this->DicomDatabase)
     {
+    logger.error(ctkDICOMVisualBrowserWidget::tr("filterSeriesList failed, no DICOM Database has been set. \n"));
     return filteredSeriesList;
     }
 
@@ -888,7 +953,14 @@ static void skipDelete(QObject* obj)
 }
 
 //----------------------------------------------------------------------------
-QSharedPointer<ctkDICOMPoolManager> ctkDICOMVisualBrowserWidget::poolManager()const
+ctkDICOMPoolManager* ctkDICOMVisualBrowserWidget::poolManager()const
+{
+  Q_D(const ctkDICOMVisualBrowserWidget);
+  return d->PoolManager.data();
+}
+
+//----------------------------------------------------------------------------
+QSharedPointer<ctkDICOMPoolManager> ctkDICOMVisualBrowserWidget::poolManagerShared()const
 {
   Q_D(const ctkDICOMVisualBrowserWidget);
   return d->PoolManager;
@@ -898,32 +970,29 @@ QSharedPointer<ctkDICOMPoolManager> ctkDICOMVisualBrowserWidget::poolManager()co
 void ctkDICOMVisualBrowserWidget::setPoolManager(ctkDICOMPoolManager& poolManager)
 {
   Q_D(ctkDICOMVisualBrowserWidget);
-  if (d->PoolManager)
-    {
-    QObject::disconnect(d->PoolManager.data(), SIGNAL(progressTaskDetail(ctkDICOMTaskResults*)),
-                        this, SLOT(updateGUIFromPoolManager(ctkDICOMTaskResults*)));
-
-    QObject::disconnect(d->ProgressCancelButton, SIGNAL(clicked()), d->PoolManager->Indexer().data(), SLOT(cancel()));
-    QObject::disconnect(d->PoolManager->Indexer().data(), SIGNAL(progress(int)), this, SLOT(onIndexingProgress(int)));
-    QObject::disconnect(d->PoolManager->Indexer().data(), SIGNAL(progressStep(QString)),this, SLOT(onIndexingProgressStep(QString)));
-    QObject::disconnect(d->PoolManager->Indexer().data(), SIGNAL(progressDetail(QString)), this, SLOT(onIndexingProgressDetail(QString)));
-    QObject::disconnect(d->PoolManager->Indexer().data(), SIGNAL(indexingComplete(int,int,int,int)), this, SLOT(onIndexingComplete(int,int,int,int)));
-    }
-
+  d->disconnectPoolManager();
   d->PoolManager = QSharedPointer<ctkDICOMPoolManager>(&poolManager, skipDelete);
-
-  QObject::connect(d->PoolManager.data(), SIGNAL(progressTaskDetail(ctkDICOMTaskResults*)),
-                   this, SLOT(updateGUIFromPoolManager(ctkDICOMTaskResults*)));
-
-  QObject::connect(d->ProgressCancelButton, SIGNAL(clicked()), d->PoolManager->Indexer().data(), SLOT(cancel()));
-  QObject::connect(d->PoolManager->Indexer().data(), SIGNAL(progress(int)), this, SLOT(onIndexingProgress(int)));
-  QObject::connect(d->PoolManager->Indexer().data(), SIGNAL(progressStep(QString)),this, SLOT(onIndexingProgressStep(QString)));
-  QObject::connect(d->PoolManager->Indexer().data(), SIGNAL(progressDetail(QString)), this, SLOT(onIndexingProgressDetail(QString)));
-  QObject::connect(d->PoolManager->Indexer().data(), SIGNAL(indexingComplete(int,int,int,int)), this, SLOT(onIndexingComplete(int,int,int,int)));
+  d->connectPoolManager();
 }
 
 //----------------------------------------------------------------------------
-QSharedPointer<ctkDICOMDatabase> ctkDICOMVisualBrowserWidget::dicomDatabase()const
+void ctkDICOMVisualBrowserWidget::setPoolManager(QSharedPointer<ctkDICOMPoolManager> poolManager)
+{
+  Q_D(ctkDICOMVisualBrowserWidget);
+  d->disconnectPoolManager();
+  d->PoolManager = poolManager;
+  d->connectPoolManager();
+}
+
+//----------------------------------------------------------------------------
+ctkDICOMDatabase* ctkDICOMVisualBrowserWidget::dicomDatabase()const
+{
+  Q_D(const ctkDICOMVisualBrowserWidget);
+  return d->DicomDatabase.data();
+}
+
+//----------------------------------------------------------------------------
+QSharedPointer<ctkDICOMDatabase> ctkDICOMVisualBrowserWidget::dicomDatabaseShared()const
 {
   Q_D(const ctkDICOMVisualBrowserWidget);
   return d->DicomDatabase;
@@ -934,10 +1003,20 @@ void ctkDICOMVisualBrowserWidget::setDicomDatabase(ctkDICOMDatabase& dicomDataba
 {
   Q_D(ctkDICOMVisualBrowserWidget);
   d->DicomDatabase = QSharedPointer<ctkDICOMDatabase>(&dicomDatabase, skipDelete);
-
   if (d->PoolManager)
     {
-    d->PoolManager->setDicomDatabase(*d->DicomDatabase);
+    d->PoolManager->setDicomDatabase(d->DicomDatabase);
+    }
+}
+
+//----------------------------------------------------------------------------
+void ctkDICOMVisualBrowserWidget::setDicomDatabase(QSharedPointer<ctkDICOMDatabase> dicomDatabase)
+{
+  Q_D(ctkDICOMVisualBrowserWidget);
+  d->DicomDatabase = dicomDatabase;
+  if (d->PoolManager)
+    {
+    d->PoolManager->setDicomDatabase(d->DicomDatabase);
     }
 }
 
@@ -947,6 +1026,7 @@ void ctkDICOMVisualBrowserWidget::setTagsToPrecache(const QStringList tags)
   Q_D(ctkDICOMVisualBrowserWidget);
   if (!d->DicomDatabase)
     {
+    logger.error(tr("setTagsToPrecache failed, no DICOM Database has been set. \n"));
     return;
     }
 
@@ -959,6 +1039,7 @@ const QStringList ctkDICOMVisualBrowserWidget::tagsToPrecache()
   Q_D(ctkDICOMVisualBrowserWidget);
   if (!d->DicomDatabase)
     {
+    logger.error(tr("Get tagsToPrecache failed, no DICOM Database has been set. \n"));
     return QStringList();
     }
 
@@ -971,6 +1052,7 @@ int ctkDICOMVisualBrowserWidget::getNumberOfServers()
   Q_D(ctkDICOMVisualBrowserWidget);
   if (!d->PoolManager)
     {
+    logger.error(tr("getNumberOfServers failed, no Pool Manager has been set. \n"));
     return -1;
     }
 
@@ -983,6 +1065,7 @@ ctkDICOMServer* ctkDICOMVisualBrowserWidget::getNthServer(int id)
   Q_D(ctkDICOMVisualBrowserWidget);
   if (!d->PoolManager)
     {
+    logger.error(tr("getNthServer failed, no Pool Manager has been set. \n"));
     return nullptr;
     }
 
@@ -995,6 +1078,7 @@ ctkDICOMServer* ctkDICOMVisualBrowserWidget::getServer(const char *connectioName
   Q_D(ctkDICOMVisualBrowserWidget);
   if (!d->PoolManager)
     {
+    logger.error(tr("getServer failed, no Pool Manager has been set. \n"));
     return nullptr;
     }
 
@@ -1007,6 +1091,7 @@ void ctkDICOMVisualBrowserWidget::addServer(ctkDICOMServer* server)
   Q_D(ctkDICOMVisualBrowserWidget);
   if (!d->PoolManager)
     {
+    logger.error(tr("addServer failed, no Pool Manager has been set. \n"));
     return;
     }
 
@@ -1019,6 +1104,7 @@ void ctkDICOMVisualBrowserWidget::removeServer(const char *connectioName)
   Q_D(ctkDICOMVisualBrowserWidget);
   if (!d->PoolManager)
     {
+    logger.error(tr("removeServer failed, no Pool Manager has been set. \n"));
     return;
     }
 
@@ -1031,6 +1117,7 @@ void ctkDICOMVisualBrowserWidget::removeNthServer(int id)
   Q_D(ctkDICOMVisualBrowserWidget);
   if (!d->PoolManager)
     {
+    logger.error(tr("removeNthServer failed, no Pool Manager has been set. \n"));
     return;
     }
 
@@ -1043,6 +1130,7 @@ QString ctkDICOMVisualBrowserWidget::getServerNameFromIndex(int id)
   Q_D(ctkDICOMVisualBrowserWidget);
   if (!d->PoolManager)
     {
+    logger.error(tr("getServerNameFromIndex failed, no Pool Manager has been set. \n"));
     return "";
     }
 
@@ -1055,6 +1143,7 @@ int ctkDICOMVisualBrowserWidget::getServerIndexFromName(const char *connectioNam
   Q_D(ctkDICOMVisualBrowserWidget);
   if (!d->PoolManager)
     {
+    logger.error(tr("getServerIndexFromName failed, no Pool Manager has been set. \n"));
     return -1;
     }
 
@@ -1185,6 +1274,7 @@ void ctkDICOMVisualBrowserWidget::addPatientItemWidget(const QString& patientIte
   Q_D(ctkDICOMVisualBrowserWidget);
   if (!d->DicomDatabase || !d->PoolManager)
     {
+    logger.error(tr("addPatientItemWidget failed, no Pool Manager and/or DICOM database has been set. \n"));
     return;
     }
 
@@ -1312,6 +1402,7 @@ void ctkDICOMVisualBrowserWidget::setDatabaseDirectory(const QString &directory)
   Q_D(ctkDICOMVisualBrowserWidget);
   if (!d->DicomDatabase)
     {
+    logger.error(tr("setDatabaseDirectory failed, no DICOM database has been set. \n"));
     return;
     }
 
@@ -1389,11 +1480,6 @@ void ctkDICOMVisualBrowserWidget::openImportDialog()
 void ctkDICOMVisualBrowserWidget::importDirectories(QStringList directories, ImportDirectoryMode mode)
 {
   Q_D(ctkDICOMVisualBrowserWidget);
-  if (!d->DicomDatabase || !d->PoolManager || !d->PoolManager->Indexer())
-    {
-    qWarning() << Q_FUNC_INFO << " failed: database or indexer is invalid";
-    return;
-    }
   foreach (const QString& directory, directories)
     {
     d->importDirectory(directory, mode);
@@ -1411,11 +1497,6 @@ void ctkDICOMVisualBrowserWidget::importDirectory(QString directory, ImportDirec
 void ctkDICOMVisualBrowserWidget::importFiles(const QStringList &files, ImportDirectoryMode mode)
 {
   Q_D(ctkDICOMVisualBrowserWidget);
-  if (!d->DicomDatabase || !d->PoolManager || !d->PoolManager->Indexer())
-    {
-    qWarning() << Q_FUNC_INFO << " failed: database or indexer is invalid";
-    return;
-    }
   d->importFiles(files, mode);
 }
 
@@ -1425,7 +1506,7 @@ void ctkDICOMVisualBrowserWidget::waitForImportFinished()
   Q_D(ctkDICOMVisualBrowserWidget);
   if (!d->PoolManager || !d->PoolManager->Indexer())
     {
-    qWarning() << Q_FUNC_INFO << " failed: indexer is invalid";
+    logger.error(ctkDICOMVisualBrowserWidget::tr("waitForImportFinished failed, no Pool Manager has been set. \n"));
     return;
     }
   d->PoolManager->Indexer()->waitForImportFinished();
@@ -1513,6 +1594,7 @@ QStringList ctkDICOMVisualBrowserWidget::fileListForCurrentSelection(ctkDICOMMod
   Q_D(const ctkDICOMVisualBrowserWidget);
   if (!d->DicomDatabase)
     {
+    logger.error(tr("fileListForCurrentSelection failed, no DICOM database has been set. \n"));
     return QStringList();
     }
 
@@ -1577,6 +1659,7 @@ void ctkDICOMVisualBrowserWidget::removeSelectedItems(ctkDICOMModel::IndexType l
   Q_D(ctkDICOMVisualBrowserWidget);
   if (!d->DicomDatabase)
     {
+    logger.error(tr("removeSelectedItems failed, no DICOM database has been set. \n"));
     return;
     }
 
@@ -1734,8 +1817,9 @@ void ctkDICOMVisualBrowserWidget::onFilteringDateComboBoxChanged(int index)
 void ctkDICOMVisualBrowserWidget::onQueryPatient(bool forcefiltersEmpty)
 {
   Q_D(ctkDICOMVisualBrowserWidget);
-  if (!d->DicomDatabase || !d->PoolManager)
+  if (!d->DicomDatabase)
     {
+    logger.error(tr("removeSelectedItems failed, no DICOM database has been set. \n"));
     return;
     }
 
@@ -1751,7 +1835,8 @@ void ctkDICOMVisualBrowserWidget::onQueryPatient(bool forcefiltersEmpty)
 
   filtersEmpty = forcefiltersEmpty ? forcefiltersEmpty : filtersEmpty;
 
-  if (d->DicomDatabase->patients().count() == 0 &&
+  if (d->DicomDatabase &&
+      d->DicomDatabase->patients().count() == 0 &&
       filtersEmpty)
     {
     QString background = "QWidget { background-color: yellow }";
@@ -1772,12 +1857,12 @@ void ctkDICOMVisualBrowserWidget::onQueryPatient(bool forcefiltersEmpty)
     d->WarningPushButton->hide();
     }
 
-  if (filtersEmpty || d->PoolManager->getNumberOfServers() == 0)
+  if (filtersEmpty || ((d->PoolManager && d->PoolManager->getNumberOfServers() == 0) || !d->PoolManager))
     {
     d->updateGUIOnQueryPatient();
     d->updateFiltersWarnings();
     }
-  else if (d->PoolManager->getNumberOfServers() > 0)
+  else if (d->PoolManager && d->PoolManager->getNumberOfServers() > 0)
     {
     this->onStop();
 
@@ -1819,7 +1904,7 @@ void ctkDICOMVisualBrowserWidget::updateGUIFromPoolManager(ctkDICOMTaskResults *
     return;
     }
 
-  d->updateGUIOnQueryPatient(taskResults);
+  d->updateGUIOnQueryPatient();
 }
 
 //------------------------------------------------------------------------------
@@ -1841,10 +1926,6 @@ void ctkDICOMVisualBrowserWidget::onPatientItemChanged(int index)
 void ctkDICOMVisualBrowserWidget::showPatientContextMenu(const QPoint &point)
 {
   Q_D(ctkDICOMVisualBrowserWidget);
-  if (!d->PoolManager)
-    {
-    return;
-    }
 
   ctkDICOMPatientItemWidget *patientItemWidget =
     qobject_cast<ctkDICOMPatientItemWidget*>(d->PatientsTabWidget->currentWidget());
@@ -1853,7 +1934,11 @@ void ctkDICOMVisualBrowserWidget::showPatientContextMenu(const QPoint &point)
     return;
     }
 
-  int currrentTotalTasks = d->PoolManager->totalTasks();
+  int currrentTotalTasks = 0;
+  if (d->PoolManager)
+    {
+    currrentTotalTasks = d->PoolManager->totalTasks();
+    }
 
   QPoint globalPos = patientItemWidget->mapToGlobal(point);
   QMenu *patientMenu = new QMenu();
@@ -1918,10 +2003,6 @@ void ctkDICOMVisualBrowserWidget::showPatientContextMenu(const QPoint &point)
 void ctkDICOMVisualBrowserWidget::showStudyContextMenu(const QPoint &point)
 {
   Q_D(ctkDICOMVisualBrowserWidget);
-  if (!d->PoolManager)
-    {
-    return;
-    }
 
   ctkDICOMStudyItemWidget* studyItemWidget =
     qobject_cast<ctkDICOMStudyItemWidget*>(QObject::sender());
@@ -1930,7 +2011,11 @@ void ctkDICOMVisualBrowserWidget::showStudyContextMenu(const QPoint &point)
     return;
     }
 
-  int currrentTotalTasks = d->PoolManager->totalTasks();
+  int currrentTotalTasks = 0;
+  if (d->PoolManager)
+    {
+    currrentTotalTasks = d->PoolManager->totalTasks();
+    }
 
   QPoint globalPos = studyItemWidget->mapToGlobal(point);
   QMenu *studyMenu = new QMenu();
@@ -1995,11 +2080,6 @@ void ctkDICOMVisualBrowserWidget::showStudyContextMenu(const QPoint &point)
 void ctkDICOMVisualBrowserWidget::showSeriesContextMenu(const QPoint &point)
 {
   Q_D(ctkDICOMVisualBrowserWidget);
-  if (!d->PoolManager)
-    {
-    return;
-    }
-
   ctkDICOMSeriesItemWidget* seriesItemWidget =
     qobject_cast<ctkDICOMSeriesItemWidget*>(QObject::sender());
   if (seriesItemWidget == nullptr)
@@ -2007,7 +2087,11 @@ void ctkDICOMVisualBrowserWidget::showSeriesContextMenu(const QPoint &point)
     return;
     }
 
-  int currrentTotalTasks = d->PoolManager->totalTasks();
+  int currrentTotalTasks = 0;
+  if (d->PoolManager)
+    {
+    currrentTotalTasks = d->PoolManager->totalTasks();
+    }
 
   QPoint globalPos = seriesItemWidget->mapToGlobal(point);
   QMenu *seriesMenu = new QMenu();
@@ -2075,6 +2159,7 @@ void ctkDICOMVisualBrowserWidget::exportSelectedItems(ctkDICOMModel::IndexType l
   Q_D(const ctkDICOMVisualBrowserWidget);
   if (!d->DicomDatabase)
     {
+    logger.error(tr("exportSelectedItems failed, no DICOM database has been set. \n"));
     return;
     }
 
@@ -2138,6 +2223,7 @@ void ctkDICOMVisualBrowserWidget::exportSeries(QString dirPath, QStringList uids
   Q_D(ctkDICOMVisualBrowserWidget);
   if (!d->DicomDatabase)
     {
+    logger.error(tr("exportSeries failed, no DICOM database has been set. \n"));
     return;
     }
 
@@ -2309,6 +2395,7 @@ void ctkDICOMVisualBrowserWidget::onStop()
   Q_D(ctkDICOMVisualBrowserWidget);
   if (!d->PoolManager)
     {
+    logger.error(tr("onStop failed, no Pool Manager has been set. \n"));
     return;
     }
 
@@ -2330,7 +2417,13 @@ void ctkDICOMVisualBrowserWidget::closeEvent(QCloseEvent *event)
 bool ctkDICOMVisualBrowserWidget::confirmDeleteSelectedUIDs(QStringList uids)
 {
   Q_D(ctkDICOMVisualBrowserWidget);
-  if (uids.isEmpty() || !d->DicomDatabase)
+  if (!d->DicomDatabase)
+    {
+    logger.error(tr("confirmDeleteSelectedUIDs failed, no DICOM database has been set. \n"));
+    return false;
+    }
+
+  if (uids.isEmpty())
     {
     return false;
     }
@@ -2385,9 +2478,3 @@ bool ctkDICOMVisualBrowserWidget::confirmDeleteSelectedUIDs(QStringList uids)
     return false;
     }
 }
-
-
-
-
-
-

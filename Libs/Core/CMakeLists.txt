@@ -30,8 +30,8 @@ set(KIT_SRCS
   ctkAbstractQObjectFactory.tpp
   ctkAbstractLibraryFactory.h
   ctkAbstractLibraryFactory.tpp
-  ctkAbstractPoolManager.cpp
-  ctkAbstractPoolManager.h
+  ctkAbstractTaskPool.cpp
+  ctkAbstractTaskPool.h
   ctkAbstractTask.cpp
   ctkAbstractTask.h
   ctkBackTrace.cpp
@@ -105,7 +105,7 @@ endif()
 # Headers that should run through moc
 set(KIT_MOC_SRCS
   ctkAbstractTask.h
-  ctkAbstractPoolManager.h
+  ctkAbstractTaskPool.h
   ctkBooleanMapper.h
   ctkCallback.h
   ctkCommandLineParser.h
