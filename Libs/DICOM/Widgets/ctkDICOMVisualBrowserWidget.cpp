@@ -513,9 +513,9 @@ void ctkDICOMVisualBrowserWidgetPrivate::updateModalityCheckableComboBox()
 void ctkDICOMVisualBrowserWidgetPrivate::updateGUIOnQueryPatient()
 {
   Q_Q(ctkDICOMVisualBrowserWidget);
-  if (!this->DicomDatabase || !this->TaskPool)
+  if (!this->DicomDatabase)
     {
-    logger.error("updateGUIOnQueryPatient failed, no task pool and/or DICOM database has been set. \n");
+    logger.error("updateGUIOnQueryPatient failed, no DICOM database has been set. \n");
     return;
     }
 
@@ -530,7 +530,6 @@ void ctkDICOMVisualBrowserWidgetPrivate::updateGUIOnQueryPatient()
     {
     QString patientID = this->DicomDatabase->fieldForPatient("PatientID", patientItem);
     QString patientName = this->DicomDatabase->fieldForPatient("PatientsName", patientItem);
-
     if (this->isPatientTabAlreadyAdded(patientItem))
       {
       continue;
@@ -1272,9 +1271,9 @@ bool ctkDICOMVisualBrowserWidget::isSendActionVisible() const
 void ctkDICOMVisualBrowserWidget::addPatientItemWidget(const QString& patientItem)
 {
   Q_D(ctkDICOMVisualBrowserWidget);
-  if (!d->DicomDatabase || !d->TaskPool)
+  if (!d->DicomDatabase)
     {
-    logger.error("addPatientItemWidget failed, no task pool and/or DICOM database has been set. \n");
+    logger.error("addPatientItemWidget failed, no DICOM database has been set. \n");
     return;
     }
 
@@ -1287,8 +1286,8 @@ void ctkDICOMVisualBrowserWidget::addPatientItemWidget(const QString& patientIte
   patientItemWidget->setFilteringSeriesDescription(d->FilteringSeriesDescription);
   patientItemWidget->setFilteringModalities(d->FilteringModalities);
   patientItemWidget->setNumberOfSeriesPerRow(d->NumberOfSeriesPerRow);
-  patientItemWidget->setDicomDatabase(*d->DicomDatabase);
-  patientItemWidget->setTaskPool(*d->TaskPool);
+  patientItemWidget->setDicomDatabase(d->DicomDatabase);
+  patientItemWidget->setTaskPool(d->TaskPool);
   patientItemWidget->setContextMenuPolicy(Qt::CustomContextMenu);
   this->connect(patientItemWidget, SIGNAL(customContextMenuRequested(const QPoint&)),
                 this, SLOT(showPatientContextMenu(const QPoint&)));
@@ -2395,7 +2394,6 @@ void ctkDICOMVisualBrowserWidget::onStop()
   Q_D(ctkDICOMVisualBrowserWidget);
   if (!d->TaskPool)
     {
-    logger.error("onStop failed, no task pool has been set. \n");
     return;
     }
 
