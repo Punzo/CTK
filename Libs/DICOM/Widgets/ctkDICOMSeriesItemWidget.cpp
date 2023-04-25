@@ -679,7 +679,10 @@ void ctkDICOMSeriesItemWidget::mousePressEvent(QMouseEvent *event)
     return;
     }
 
-  d->raiseRetrieveFramesTasksPriority();
+  if (d->TaskPool && d->TaskPool->getNumberOfServers() > 0)
+    {
+    d->raiseRetrieveFramesTasksPriority();
+    }
 
   QWidget::mousePressEvent(event);
 }
