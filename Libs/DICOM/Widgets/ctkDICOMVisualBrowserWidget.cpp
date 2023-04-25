@@ -379,19 +379,19 @@ void ctkDICOMVisualBrowserWidgetPrivate::importDirectory(QString directory, ctkD
 {
   if (!this->DicomDatabase)
     {
-    logger.error(ctkDICOMVisualBrowserWidget::tr("importDirectory failed, no DICOM Database has been set. \n"));
+    logger.error("importDirectory failed, no DICOM Database has been set. \n");
     return;
     }
 
   if (!this->TaskPool || !this->TaskPool->Indexer())
     {
-    logger.error(ctkDICOMVisualBrowserWidget::tr("importDirectory failed, no task pool has been set. \n"));
+    logger.error("importDirectory failed, no task pool has been set. \n");
     return;
     }
 
   if (!QDir(directory).exists())
     {
-    logger.error(ctkDICOMVisualBrowserWidget::tr("importDirectory failed, input directory %1 does not exist. \n").arg(directory));
+    logger.error(QString("importDirectory failed, input directory %1 does not exist. \n").arg(directory));
     return;
     }
   // Start background indexing
@@ -403,13 +403,13 @@ void ctkDICOMVisualBrowserWidgetPrivate::importFiles(const QStringList &files, c
 {
   if (!this->DicomDatabase)
     {
-    logger.error(ctkDICOMVisualBrowserWidget::tr("importFiles failed, no DICOM Database has been set. \n"));
+    logger.error("importFiles failed, no DICOM Database has been set. \n");
     return;
     }
 
   if (!this->TaskPool || !this->TaskPool->Indexer())
     {
-    logger.error(ctkDICOMVisualBrowserWidget::tr("importFiles failed, no task pool has been set. \n"));
+    logger.error("importFiles failed, no task pool has been set. \n");
     return;
     }
 
@@ -515,7 +515,7 @@ void ctkDICOMVisualBrowserWidgetPrivate::updateGUIOnQueryPatient()
   Q_Q(ctkDICOMVisualBrowserWidget);
   if (!this->DicomDatabase || !this->TaskPool)
     {
-    logger.error(ctkDICOMVisualBrowserWidget::tr("updateGUIOnQueryPatient failed, no task pool and/or DICOM database has been set. \n"));
+    logger.error("updateGUIOnQueryPatient failed, no task pool and/or DICOM database has been set. \n");
     return;
     }
 
@@ -556,7 +556,7 @@ void ctkDICOMVisualBrowserWidgetPrivate::updateFiltersWarnings()
 {
   if (!this->DicomDatabase)
     {
-    logger.error(ctkDICOMVisualBrowserWidget::tr("updateFiltersWarnings failed, no DICOM database has been set. \n"));
+    logger.error("updateFiltersWarnings failed, no DICOM database has been set. \n");
     return;
     }
 
@@ -657,7 +657,7 @@ void ctkDICOMVisualBrowserWidgetPrivate::retrieveSeries()
   Q_Q(ctkDICOMVisualBrowserWidget);
   if (!this->TaskPool)
     {
-    logger.error(ctkDICOMVisualBrowserWidget::tr("retrieveSeries failed, no task pool has been set. \n"));
+    logger.error("retrieveSeries failed, no task pool has been set. \n");
     return;
     }
 
@@ -789,7 +789,7 @@ QStringList ctkDICOMVisualBrowserWidgetPrivate::filterPatientList(const QStringL
   QStringList filteredPatientList;
   if (!this->DicomDatabase)
     {
-    logger.error(ctkDICOMVisualBrowserWidget::tr("filterPatientList failed, no DICOM Database has been set. \n"));
+    logger.error("filterPatientList failed, no DICOM Database has been set. \n");
     return filteredPatientList;
     }
 
@@ -815,7 +815,7 @@ QStringList ctkDICOMVisualBrowserWidgetPrivate::filterStudyList(const QStringLis
   QStringList filteredStudyList;
   if (!this->DicomDatabase)
     {
-    logger.error(ctkDICOMVisualBrowserWidget::tr("filterStudyList failed, no DICOM Database has been set. \n"));
+    logger.error("filterStudyList failed, no DICOM Database has been set. \n");
     return filteredStudyList;
     }
 
@@ -856,7 +856,7 @@ QStringList ctkDICOMVisualBrowserWidgetPrivate::filterSeriesList(const QStringLi
   QStringList filteredSeriesList;
   if (!this->DicomDatabase)
     {
-    logger.error(ctkDICOMVisualBrowserWidget::tr("filterSeriesList failed, no DICOM Database has been set. \n"));
+    logger.error("filterSeriesList failed, no DICOM Database has been set. \n");
     return filteredSeriesList;
     }
 
@@ -882,7 +882,7 @@ QStringList ctkDICOMVisualBrowserWidgetPrivate::filterSeriesList(const QStringLi
   QStringList filteredSeriesList;
   if (!this->DicomDatabase)
     {
-    logger.error(ctkDICOMVisualBrowserWidget::tr("filterSeriesList failed, no DICOM Database has been set. \n"));
+    logger.error("filterSeriesList failed, no DICOM Database has been set. \n");
     return filteredSeriesList;
     }
 
@@ -953,34 +953,34 @@ static void skipDelete(QObject* obj)
 }
 
 //----------------------------------------------------------------------------
-ctkDICOMTaskPool* ctkDICOMVisualBrowserWidget::TaskPool()const
+ctkDICOMTaskPool* ctkDICOMVisualBrowserWidget::taskPool()const
 {
   Q_D(const ctkDICOMVisualBrowserWidget);
   return d->TaskPool.data();
 }
 
 //----------------------------------------------------------------------------
-QSharedPointer<ctkDICOMTaskPool> ctkDICOMVisualBrowserWidget::TaskPoolShared()const
+QSharedPointer<ctkDICOMTaskPool> ctkDICOMVisualBrowserWidget::taskPoolShared()const
 {
   Q_D(const ctkDICOMVisualBrowserWidget);
   return d->TaskPool;
 }
 
 //----------------------------------------------------------------------------
-void ctkDICOMVisualBrowserWidget::setTaskPool(ctkDICOMTaskPool& TaskPool)
+void ctkDICOMVisualBrowserWidget::setTaskPool(ctkDICOMTaskPool& taskPool)
 {
   Q_D(ctkDICOMVisualBrowserWidget);
   d->disconnectTaskPool();
-  d->TaskPool = QSharedPointer<ctkDICOMTaskPool>(&TaskPool, skipDelete);
+  d->TaskPool = QSharedPointer<ctkDICOMTaskPool>(&taskPool, skipDelete);
   d->connectTaskPool();
 }
 
 //----------------------------------------------------------------------------
-void ctkDICOMVisualBrowserWidget::setTaskPool(QSharedPointer<ctkDICOMTaskPool> TaskPool)
+void ctkDICOMVisualBrowserWidget::setTaskPool(QSharedPointer<ctkDICOMTaskPool> taskPool)
 {
   Q_D(ctkDICOMVisualBrowserWidget);
   d->disconnectTaskPool();
-  d->TaskPool = TaskPool;
+  d->TaskPool = taskPool;
   d->connectTaskPool();
 }
 
@@ -1026,7 +1026,7 @@ void ctkDICOMVisualBrowserWidget::setTagsToPrecache(const QStringList tags)
   Q_D(ctkDICOMVisualBrowserWidget);
   if (!d->DicomDatabase)
     {
-    logger.error(tr("setTagsToPrecache failed, no DICOM Database has been set. \n"));
+    logger.error("setTagsToPrecache failed, no DICOM Database has been set. \n");
     return;
     }
 
@@ -1039,7 +1039,7 @@ const QStringList ctkDICOMVisualBrowserWidget::tagsToPrecache()
   Q_D(ctkDICOMVisualBrowserWidget);
   if (!d->DicomDatabase)
     {
-    logger.error(tr("Get tagsToPrecache failed, no DICOM Database has been set. \n"));
+    logger.error("Get tagsToPrecache failed, no DICOM Database has been set. \n");
     return QStringList();
     }
 
@@ -1052,7 +1052,7 @@ int ctkDICOMVisualBrowserWidget::getNumberOfServers()
   Q_D(ctkDICOMVisualBrowserWidget);
   if (!d->TaskPool)
     {
-    logger.error(tr("getNumberOfServers failed, no task pool has been set. \n"));
+    logger.error("getNumberOfServers failed, no task pool has been set. \n");
     return -1;
     }
 
@@ -1065,7 +1065,7 @@ ctkDICOMServer* ctkDICOMVisualBrowserWidget::getNthServer(int id)
   Q_D(ctkDICOMVisualBrowserWidget);
   if (!d->TaskPool)
     {
-    logger.error(tr("getNthServer failed, no task pool has been set. \n"));
+    logger.error("getNthServer failed, no task pool has been set. \n");
     return nullptr;
     }
 
@@ -1078,7 +1078,7 @@ ctkDICOMServer* ctkDICOMVisualBrowserWidget::getServer(const char *connectioName
   Q_D(ctkDICOMVisualBrowserWidget);
   if (!d->TaskPool)
     {
-    logger.error(tr("getServer failed, no task pool has been set. \n"));
+    logger.error("getServer failed, no task pool has been set. \n");
     return nullptr;
     }
 
@@ -1091,7 +1091,7 @@ void ctkDICOMVisualBrowserWidget::addServer(ctkDICOMServer* server)
   Q_D(ctkDICOMVisualBrowserWidget);
   if (!d->TaskPool)
     {
-    logger.error(tr("addServer failed, no task pool has been set. \n"));
+    logger.error("addServer failed, no task pool has been set. \n");
     return;
     }
 
@@ -1104,7 +1104,7 @@ void ctkDICOMVisualBrowserWidget::removeServer(const char *connectioName)
   Q_D(ctkDICOMVisualBrowserWidget);
   if (!d->TaskPool)
     {
-    logger.error(tr("removeServer failed, no task pool has been set. \n"));
+    logger.error("removeServer failed, no task pool has been set. \n");
     return;
     }
 
@@ -1117,7 +1117,7 @@ void ctkDICOMVisualBrowserWidget::removeNthServer(int id)
   Q_D(ctkDICOMVisualBrowserWidget);
   if (!d->TaskPool)
     {
-    logger.error(tr("removeNthServer failed, no task pool has been set. \n"));
+    logger.error("removeNthServer failed, no task pool has been set. \n");
     return;
     }
 
@@ -1130,7 +1130,7 @@ QString ctkDICOMVisualBrowserWidget::getServerNameFromIndex(int id)
   Q_D(ctkDICOMVisualBrowserWidget);
   if (!d->TaskPool)
     {
-    logger.error(tr("getServerNameFromIndex failed, no task pool has been set. \n"));
+    logger.error("getServerNameFromIndex failed, no task pool has been set. \n");
     return "";
     }
 
@@ -1143,7 +1143,7 @@ int ctkDICOMVisualBrowserWidget::getServerIndexFromName(const char *connectioNam
   Q_D(ctkDICOMVisualBrowserWidget);
   if (!d->TaskPool)
     {
-    logger.error(tr("getServerIndexFromName failed, no task pool has been set. \n"));
+    logger.error("getServerIndexFromName failed, no task pool has been set. \n");
     return -1;
     }
 
@@ -1274,7 +1274,7 @@ void ctkDICOMVisualBrowserWidget::addPatientItemWidget(const QString& patientIte
   Q_D(ctkDICOMVisualBrowserWidget);
   if (!d->DicomDatabase || !d->TaskPool)
     {
-    logger.error(tr("addPatientItemWidget failed, no task pool and/or DICOM database has been set. \n"));
+    logger.error("addPatientItemWidget failed, no task pool and/or DICOM database has been set. \n");
     return;
     }
 
@@ -1402,7 +1402,7 @@ void ctkDICOMVisualBrowserWidget::setDatabaseDirectory(const QString &directory)
   Q_D(ctkDICOMVisualBrowserWidget);
   if (!d->DicomDatabase)
     {
-    logger.error(tr("setDatabaseDirectory failed, no DICOM database has been set. \n"));
+    logger.error("setDatabaseDirectory failed, no DICOM database has been set. \n");
     return;
     }
 
@@ -1506,7 +1506,7 @@ void ctkDICOMVisualBrowserWidget::waitForImportFinished()
   Q_D(ctkDICOMVisualBrowserWidget);
   if (!d->TaskPool || !d->TaskPool->Indexer())
     {
-    logger.error(ctkDICOMVisualBrowserWidget::tr("waitForImportFinished failed, no task pool has been set. \n"));
+    logger.error("waitForImportFinished failed, no task pool has been set. \n");
     return;
     }
   d->TaskPool->Indexer()->waitForImportFinished();
@@ -1594,7 +1594,7 @@ QStringList ctkDICOMVisualBrowserWidget::fileListForCurrentSelection(ctkDICOMMod
   Q_D(const ctkDICOMVisualBrowserWidget);
   if (!d->DicomDatabase)
     {
-    logger.error(tr("fileListForCurrentSelection failed, no DICOM database has been set. \n"));
+    logger.error("fileListForCurrentSelection failed, no DICOM database has been set. \n");
     return QStringList();
     }
 
@@ -1659,7 +1659,7 @@ void ctkDICOMVisualBrowserWidget::removeSelectedItems(ctkDICOMModel::IndexType l
   Q_D(ctkDICOMVisualBrowserWidget);
   if (!d->DicomDatabase)
     {
-    logger.error(tr("removeSelectedItems failed, no DICOM database has been set. \n"));
+    logger.error("removeSelectedItems failed, no DICOM database has been set. \n");
     return;
     }
 
@@ -1819,7 +1819,7 @@ void ctkDICOMVisualBrowserWidget::onQueryPatient(bool forcefiltersEmpty)
   Q_D(ctkDICOMVisualBrowserWidget);
   if (!d->DicomDatabase)
     {
-    logger.error(tr("removeSelectedItems failed, no DICOM database has been set. \n"));
+    logger.error("removeSelectedItems failed, no DICOM database has been set. \n");
     return;
     }
 
@@ -2159,7 +2159,7 @@ void ctkDICOMVisualBrowserWidget::exportSelectedItems(ctkDICOMModel::IndexType l
   Q_D(const ctkDICOMVisualBrowserWidget);
   if (!d->DicomDatabase)
     {
-    logger.error(tr("exportSelectedItems failed, no DICOM database has been set. \n"));
+    logger.error("exportSelectedItems failed, no DICOM database has been set. \n");
     return;
     }
 
@@ -2223,7 +2223,7 @@ void ctkDICOMVisualBrowserWidget::exportSeries(QString dirPath, QStringList uids
   Q_D(ctkDICOMVisualBrowserWidget);
   if (!d->DicomDatabase)
     {
-    logger.error(tr("exportSeries failed, no DICOM database has been set. \n"));
+    logger.error("exportSeries failed, no DICOM database has been set. \n");
     return;
     }
 
@@ -2395,7 +2395,7 @@ void ctkDICOMVisualBrowserWidget::onStop()
   Q_D(ctkDICOMVisualBrowserWidget);
   if (!d->TaskPool)
     {
-    logger.error(tr("onStop failed, no task pool has been set. \n"));
+    logger.error("onStop failed, no task pool has been set. \n");
     return;
     }
 
@@ -2419,7 +2419,7 @@ bool ctkDICOMVisualBrowserWidget::confirmDeleteSelectedUIDs(QStringList uids)
   Q_D(ctkDICOMVisualBrowserWidget);
   if (!d->DicomDatabase)
     {
-    logger.error(tr("confirmDeleteSelectedUIDs failed, no DICOM database has been set. \n"));
+    logger.error("confirmDeleteSelectedUIDs failed, no DICOM database has been set. \n");
     return false;
     }
 

@@ -88,11 +88,27 @@ public:
   void setNumberOfSeriesPerRow(int numberOfSeriesPerRow);
   int numberOfSeriesPerRow() const;
 
-  /// task pool and dicom database references
-  Q_INVOKABLE QSharedPointer<ctkDICOMDatabase> dicomDatabase()const;
+  /// Return the task pool.
+  Q_INVOKABLE ctkDICOMTaskPool* taskPool() const;
+  /// Return the task pool as a shared pointer
+  /// (not Python-wrappable).
+  QSharedPointer<ctkDICOMTaskPool> taskPoolShared() const;
+  /// Set the task pool.
+  Q_INVOKABLE void setTaskPool(ctkDICOMTaskPool& taskPool);
+  /// Set the task pool as a shared pointer
+  /// (not Python-wrappable).
+  void setTaskPool(QSharedPointer<ctkDICOMTaskPool> taskPool);
+
+  /// Return the Dicom Database.
+  Q_INVOKABLE ctkDICOMDatabase* dicomDatabase() const;
+  /// Return Dicom Database as a shared pointer
+  /// (not Python-wrappable).
+  QSharedPointer<ctkDICOMDatabase> dicomDatabaseShared() const;
+  /// Set the Dicom Database.
   Q_INVOKABLE void setDicomDatabase(ctkDICOMDatabase& dicomDatabase);
-  Q_INVOKABLE QSharedPointer<ctkDICOMTaskPool> TaskPool()const;
-  Q_INVOKABLE void setTaskPool(ctkDICOMTaskPool& TaskPool);
+  /// Set the Dicom Database as a shared pointer
+  /// (not Python-wrappable).
+  void setDicomDatabase(QSharedPointer<ctkDICOMDatabase> dicomDatabase);
 
   /// Return all the study item widgets for the patient
   Q_INVOKABLE QList<ctkDICOMStudyItemWidget*> studyItemWidgetsList()const;

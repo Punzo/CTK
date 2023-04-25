@@ -78,15 +78,15 @@ public:
   void setDatabaseDirectoryBase(const QString& base);
 
   /// Return the task pool.
-  Q_INVOKABLE ctkDICOMTaskPool* TaskPool() const;
+  Q_INVOKABLE ctkDICOMTaskPool* taskPool() const;
   /// Return the task pool as a shared pointer
   /// (not Python-wrappable).
-  QSharedPointer<ctkDICOMTaskPool> TaskPoolShared() const;
+  QSharedPointer<ctkDICOMTaskPool> taskPoolShared() const;
   /// Set the task pool.
-  Q_INVOKABLE void setTaskPool(ctkDICOMTaskPool& TaskPool);
+  Q_INVOKABLE void setTaskPool(ctkDICOMTaskPool& taskPool);
   /// Set the task pool as a shared pointer
   /// (not Python-wrappable).
-  void setTaskPool(QSharedPointer<ctkDICOMTaskPool> TaskPool);
+  void setTaskPool(QSharedPointer<ctkDICOMTaskPool> taskPool);
 
   /// Return the Dicom Database.
   Q_INVOKABLE ctkDICOMDatabase* dicomDatabase() const;
