@@ -71,7 +71,7 @@ bool ctkAbstractTask::isFinished() const
 //----------------------------------------------------------------------------
 void ctkAbstractTask::setIsFinished(const bool& finished)
 {
-  if (finished and this->Running)
+  if (finished && this->Running)
     {
     this->Running = false;
     }
