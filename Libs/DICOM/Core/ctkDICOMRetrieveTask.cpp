@@ -108,7 +108,7 @@ void ctkDICOMRetrieveTask::setStop(const bool& stop)
 void ctkDICOMRetrieveTask::run()
 {
   Q_D(const ctkDICOMRetrieveTask);
-  if (this->isStopped() or !d->Server)
+  if (this->isStopped() || !d->Server)
     {
     this->setIsFinished(true);
     emit canceled();
