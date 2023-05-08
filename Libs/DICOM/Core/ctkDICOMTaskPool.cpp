@@ -130,7 +130,7 @@ void ctkDICOMTaskPool::queryStudies(QThread::Priority priority)
 
 //----------------------------------------------------------------------------
 void ctkDICOMTaskPool::querySeries(const QString& studyInstanceUID,
-                                      QThread::Priority priority)
+                                   QThread::Priority priority)
 {
   Q_D(ctkDICOMTaskPool);
 
@@ -157,8 +157,8 @@ void ctkDICOMTaskPool::querySeries(const QString& studyInstanceUID,
 
 //----------------------------------------------------------------------------
 void ctkDICOMTaskPool::queryInstances(const QString& studyInstanceUID,
-                                         const QString& seriesInstanceUID,
-                                         QThread::Priority priority)
+                                      const QString& seriesInstanceUID,
+                                      QThread::Priority priority)
 {
   Q_D(ctkDICOMTaskPool);
 
@@ -186,86 +186,86 @@ void ctkDICOMTaskPool::queryInstances(const QString& studyInstanceUID,
 
 //----------------------------------------------------------------------------
 void ctkDICOMTaskPool::retrieveStudy(const QString &studyInstanceUID,
-                                        QThread::Priority priority)
+                                     QThread::Priority priority)
 {
   Q_D(ctkDICOMTaskPool);
 
-    foreach(QSharedPointer<ctkDICOMServer> server, d->Servers)
-      {
-      ctkDICOMRetrieveTask *task = new ctkDICOMRetrieveTask();
-      task->setServer(*server);
-      task->setRetrieveLevel(ctkDICOMRetrieveTask::DICOMLevel::Studies);
-      task->setStudyInstanceUID(studyInstanceUID);
-      task->setAutoDelete(false);
+  foreach(QSharedPointer<ctkDICOMServer> server, d->Servers)
+    {
+    ctkDICOMRetrieveTask *task = new ctkDICOMRetrieveTask();
+    task->setServer(*server);
+    task->setRetrieveLevel(ctkDICOMRetrieveTask::DICOMLevel::Studies);
+    task->setStudyInstanceUID(studyInstanceUID);
+    task->setAutoDelete(false);
 
-      QObject::connect(task, SIGNAL(started()), this, SLOT(taskStarted()), Qt::QueuedConnection);
-      QObject::connect(task, SIGNAL(finished()), this, SLOT(taskFinished()), Qt::QueuedConnection);
-      QObject::connect(task, SIGNAL(canceled()), this, SLOT(taskCanceled()), Qt::QueuedConnection);
+    QObject::connect(task, SIGNAL(started()), this, SLOT(taskStarted()), Qt::QueuedConnection);
+    QObject::connect(task, SIGNAL(finished()), this, SLOT(taskFinished()), Qt::QueuedConnection);
+    QObject::connect(task, SIGNAL(canceled()), this, SLOT(taskCanceled()), Qt::QueuedConnection);
 
-      QString taskUID = d->generateUniqueTaskUID();
-      task->setTaskUID(taskUID);
-      d->Tasks.insert(taskUID, task);
+    QString taskUID = d->generateUniqueTaskUID();
+    task->setTaskUID(taskUID);
+    d->Tasks.insert(taskUID, task);
 
-      d->ThreadPool->start(task, priority);
-      }
+    d->ThreadPool->start(task, priority);
+    }
 }
 
 //----------------------------------------------------------------------------
 void ctkDICOMTaskPool::retrieveSeries(const QString &studyInstanceUID,
-                                         const QString &seriesInstanceUID,
-                                         QThread::Priority priority)
+                                      const QString &seriesInstanceUID,
+                                      QThread::Priority priority)
 {
-    Q_D(ctkDICOMTaskPool);
+  Q_D(ctkDICOMTaskPool);
 
-    foreach(QSharedPointer<ctkDICOMServer> server, d->Servers)
-      {
-      ctkDICOMRetrieveTask *task = new ctkDICOMRetrieveTask();
-      task->setServer(*server);
-      task->setRetrieveLevel(ctkDICOMRetrieveTask::DICOMLevel::Series);
-      task->setStudyInstanceUID(studyInstanceUID);
-      task->setSeriesInstanceUID(seriesInstanceUID);
-      task->setAutoDelete(false);
+  foreach(QSharedPointer<ctkDICOMServer> server, d->Servers)
+    {
+    ctkDICOMRetrieveTask *task = new ctkDICOMRetrieveTask();
+    task->setServer(*server);
+    task->setRetrieveLevel(ctkDICOMRetrieveTask::DICOMLevel::Series);
+    task->setStudyInstanceUID(studyInstanceUID);
+    task->setSeriesInstanceUID(seriesInstanceUID);
+    task->setAutoDelete(false);
 
-      QObject::connect(task, SIGNAL(started()), this, SLOT(taskStarted()), Qt::QueuedConnection);
-      QObject::connect(task, SIGNAL(finished()), this, SLOT(taskFinished()), Qt::QueuedConnection);
-      QObject::connect(task, SIGNAL(canceled()), this, SLOT(taskCanceled()), Qt::QueuedConnection);
+    QObject::connect(task, SIGNAL(started()), this, SLOT(taskStarted()), Qt::QueuedConnection);
+    QObject::connect(task, SIGNAL(finished()), this, SLOT(taskFinished()), Qt::QueuedConnection);
+    QObject::connect(task, SIGNAL(canceled()), this, SLOT(taskCanceled()), Qt::QueuedConnection);
 
-      QString taskUID = d->generateUniqueTaskUID();
-      task->setTaskUID(taskUID);
-      d->Tasks.insert(taskUID, task);
+    QString taskUID = d->generateUniqueTaskUID();
+    task->setTaskUID(taskUID);
+    d->Tasks.insert(taskUID, task);
 
-      d->ThreadPool->start(task, priority);
-      }
+    d->ThreadPool->start(task, priority);
+    }
 }
 
 //----------------------------------------------------------------------------
 void ctkDICOMTaskPool::retrieveSOPInstance(const QString &studyInstanceUID,
-                                              const QString &seriesInstanceUID,
-                                              const QString &SOPInstanceUID,
-                                              QThread::Priority priority)
+                                           const QString &seriesInstanceUID,
+                                           const QString &SOPInstanceUID,
+                                           QThread::Priority priority)
 {
-   Q_D(ctkDICOMTaskPool);
+  Q_D(ctkDICOMTaskPool);
 
-   foreach(QSharedPointer<ctkDICOMServer> server, d->Servers)
-     {
-     ctkDICOMRetrieveTask *task = new ctkDICOMRetrieveTask();
-     task->setServer(*server);
-     task->setRetrieveLevel(ctkDICOMRetrieveTask::DICOMLevel::Instances);
-     task->setStudyInstanceUID(studyInstanceUID);
-     task->setSeriesInstanceUID(seriesInstanceUID);
-     task->setSOPInstanceUID(SOPInstanceUID);
-     task->setAutoDelete(false);
+  foreach(QSharedPointer<ctkDICOMServer> server, d->Servers)
+    {
+    ctkDICOMRetrieveTask *task = new ctkDICOMRetrieveTask();
+    task->setServer(*server);
+    task->setRetrieveLevel(ctkDICOMRetrieveTask::DICOMLevel::Instances);
+    task->setStudyInstanceUID(studyInstanceUID);
+    task->setSeriesInstanceUID(seriesInstanceUID);
+    task->setSOPInstanceUID(SOPInstanceUID);
+    task->setAutoDelete(false);
 
-     QObject::connect(task, SIGNAL(started()), this, SLOT(taskStarted()), Qt::QueuedConnection);
-     QObject::connect(task, SIGNAL(finished()), this, SLOT(taskFinished()), Qt::QueuedConnection);
-     QObject::connect(task, SIGNAL(canceled()), this, SLOT(taskCanceled()), Qt::QueuedConnection);
+    QObject::connect(task, SIGNAL(started()), this, SLOT(taskStarted()), Qt::QueuedConnection);
+    QObject::connect(task, SIGNAL(finished()), this, SLOT(taskFinished()), Qt::QueuedConnection);
+    QObject::connect(task, SIGNAL(canceled()), this, SLOT(taskCanceled()), Qt::QueuedConnection);
 
-     QString taskUID = d->generateUniqueTaskUID();
-     task->setTaskUID(taskUID);
-     d->Tasks.insert(taskUID, task);
+    QString taskUID = d->generateUniqueTaskUID();
+    task->setTaskUID(taskUID);
+    d->Tasks.insert(taskUID, task);
 
-     d->ThreadPool->start(task, priority);
-     }
+    d->ThreadPool->start(task, priority);
+    }
 }
 
 //----------------------------------------------------------------------------
@@ -337,7 +337,7 @@ int ctkDICOMTaskPool::getNumberOfServers()
 ctkDICOMServer* ctkDICOMTaskPool::getNthServer(int id)
 {
   Q_D(ctkDICOMTaskPool);
-  if (id < 0 || id > d->Servers.size())
+  if (id < 0 || id > d->Servers.size() - 1)
     {
     return nullptr;
     }
@@ -368,7 +368,7 @@ void ctkDICOMTaskPool::removeServer(const char *connectioName)
 void ctkDICOMTaskPool::removeNthServer(int id)
 {
   Q_D(ctkDICOMTaskPool);
-  if (id < 0 || id > d->Servers.size())
+  if (id < 0 || id > d->Servers.size() - 1)
     {
     return;
     }
@@ -380,7 +380,7 @@ void ctkDICOMTaskPool::removeNthServer(int id)
 QString ctkDICOMTaskPool::getServerNameFromIndex(int id)
 {
   Q_D(ctkDICOMTaskPool);
-  if (id < 0 || id > d->Servers.size())
+  if (id < 0 || id > d->Servers.size() - 1)
     {
     return "";
     }

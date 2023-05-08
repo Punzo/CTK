@@ -191,7 +191,14 @@ void ctkDICOMQueryTask::setServer(ctkDICOMServer& server)
 }
 
 //----------------------------------------------------------------------------
-QSharedPointer<ctkDICOMServer> ctkDICOMQueryTask::server()const
+ctkDICOMServer* ctkDICOMQueryTask::server()const
+{
+  Q_D(const ctkDICOMQueryTask);
+  return d->Server.data();
+}
+
+//----------------------------------------------------------------------------
+QSharedPointer<ctkDICOMServer> ctkDICOMQueryTask::serverShared()const
 {
   Q_D(const ctkDICOMQueryTask);
   return d->Server;

@@ -73,10 +73,11 @@ public:
   void run();
 
   /// Access the list of datasets from the last query.
-  Q_INVOKABLE QList<QSharedPointer<ctkDICOMTaskResults>> taskResults()const;
+  QList<QSharedPointer<ctkDICOMTaskResults>> taskResults()const;
 
   /// Server
-  Q_INVOKABLE QSharedPointer<ctkDICOMServer> server();
+  Q_INVOKABLE ctkDICOMServer* server()const;
+  QSharedPointer<ctkDICOMServer> serverShared()const;
   Q_INVOKABLE void setServer(ctkDICOMServer& server);
 
   /// Study instance UID

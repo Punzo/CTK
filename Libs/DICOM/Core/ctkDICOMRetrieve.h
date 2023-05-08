@@ -91,11 +91,12 @@ public:
   /// get to succeed)
   Q_INVOKABLE void setDatabase(ctkDICOMDatabase& dicomDatabase);
   void setDatabase(QSharedPointer<ctkDICOMDatabase> dicomDatabase);
-  Q_INVOKABLE QSharedPointer<ctkDICOMDatabase> database()const;
+  Q_INVOKABLE ctkDICOMDatabase* dicomDatabase() const;
+  QSharedPointer<ctkDICOMDatabase> dicomDatabaseShared() const;
 
   /// Access the list of datasets from the last get operation.
-  Q_INVOKABLE QList<QSharedPointer<ctkDICOMTaskResults>> taskResults()const;
-  Q_INVOKABLE void addTaskResults(QSharedPointer<ctkDICOMTaskResults> results);
+  QList<QSharedPointer<ctkDICOMTaskResults>> taskResults()const;
+  void addTaskResults(QSharedPointer<ctkDICOMTaskResults> results);
   void setTaskUID(const QString& taskUID);
   QString taskUID() const;
 

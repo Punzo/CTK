@@ -420,9 +420,9 @@ void ctkDICOMQueryRetrieveWidget::retrieve()
     logger.info ( "Retrieve success" );
     }
 
-  if (retrieve->database())
+  if (retrieve->dicomDatabase())
     {
-    retrieve->database()->updateDisplayedFields();
+    retrieve->dicomDatabase()->updateDisplayedFields();
     }
 
   if(d->UseProgressDialog)

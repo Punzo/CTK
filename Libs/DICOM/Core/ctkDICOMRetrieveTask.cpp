@@ -186,9 +186,16 @@ void ctkDICOMRetrieveTask::run()
 }
 
 //----------------------------------------------------------------------------
-QSharedPointer<ctkDICOMServer> ctkDICOMRetrieveTask::server()
+ctkDICOMServer* ctkDICOMRetrieveTask::server()const
 {
-  Q_D(ctkDICOMRetrieveTask);
+  Q_D(const ctkDICOMRetrieveTask);
+  return d->Server.data();
+}
+
+//----------------------------------------------------------------------------
+QSharedPointer<ctkDICOMServer> ctkDICOMRetrieveTask::serverShared()const
+{
+  Q_D(const ctkDICOMRetrieveTask);
   return d->Server;
 }
 

@@ -115,9 +115,9 @@ public:
           this->retrieve->addTaskResults(taskResults);
           return EC_Normal;
           }
-        else if (this->retrieve->database())
+        else if (this->retrieve->dicomDatabase())
           {
-          this->retrieve->database()->insert(incomingObject, true, false);
+          this->retrieve->dicomDatabase()->insert(incomingObject, true, false);
           return EC_Normal;
           }
         else
@@ -715,7 +715,14 @@ void ctkDICOMRetrieve::setDatabase(QSharedPointer<ctkDICOMDatabase> dicomDatabas
 }
 
 //------------------------------------------------------------------------------
-QSharedPointer<ctkDICOMDatabase> ctkDICOMRetrieve::database()const
+ctkDICOMDatabase* ctkDICOMRetrieve::dicomDatabase()const
+{
+  Q_D(const ctkDICOMRetrieve);
+  return d->Database.data();
+}
+
+//------------------------------------------------------------------------------
+QSharedPointer<ctkDICOMDatabase> ctkDICOMRetrieve::dicomDatabaseShared()const
 {
   Q_D(const ctkDICOMRetrieve);
   return d->Database;
