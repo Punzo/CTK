@@ -149,9 +149,10 @@ void ctkDICOMStudyItemWidgetPrivate::createThumbnails(ctkDICOMTaskResults *taskR
     return;
     }
 
-  for (int tableIndex = 0; tableIndex < seriesList.count(); ++tableIndex)
+  int tableIndex = 0;
+  for (int seriesIndex = 0; seriesIndex < seriesList.count(); ++seriesIndex)
     {
-    QString seriesItem = seriesList[tableIndex];
+    QString seriesItem = seriesList[seriesIndex];
     QString seriesInstanceUID = this->DicomDatabase->fieldForSeries("SeriesInstanceUID", seriesItem);
 
     if (taskResults && seriesInstanceUID != taskResults->seriesInstanceUID())
@@ -168,17 +169,16 @@ void ctkDICOMStudyItemWidgetPrivate::createThumbnails(ctkDICOMTaskResults *taskR
     QString seriesDescription = this->DicomDatabase->fieldForSeries("SeriesDescription", seriesItem);
 
     // Filter with modality and seriesDescription
-    if ((!this->FilteringSeriesDescription.isEmpty() && !seriesDescription.contains(this->FilteringSeriesDescription)) ||
-        (!this->FilteringModalities.contains("Any") && !this->FilteringModalities.contains(modality)))
+    if ((this->FilteringSeriesDescription.isEmpty() || seriesDescription.contains(this->FilteringSeriesDescription)) &&
+        (this->FilteringModalities.contains("Any") || this->FilteringModalities.contains(modality)))
       {
-      continue;
+      q->addSeriesItemWidget(tableIndex, seriesItem, seriesInstanceUID, modality, seriesDescription);
+      tableIndex++;
       }
 
-    q->addSeriesItemWidget(tableIndex, seriesItem, seriesInstanceUID, modality, seriesDescription);
-
-    if (tableIndex == seriesList.count() - 1)
+    if (seriesIndex == seriesList.count() - 1)
       {
-      int emptyIndex = tableIndex + 1;
+      int emptyIndex = tableIndex;
       int columnIndex = emptyIndex % this->SeriesListTableWidget->columnCount();
       while (columnIndex != 0)
         {
@@ -190,9 +190,9 @@ void ctkDICOMStudyItemWidgetPrivate::createThumbnails(ctkDICOMTaskResults *taskR
       }
 
     int iHeight = 0;
-    for (int i = 0; i < this->SeriesListTableWidget->rowCount(); ++i)
+    for (int rowIndex = 0; rowIndex < this->SeriesListTableWidget->rowCount(); ++rowIndex)
       {
-      iHeight += this->SeriesListTableWidget->verticalHeader()->sectionSize(i);
+      iHeight += this->SeriesListTableWidget->verticalHeader()->sectionSize(rowIndex);
       }
     if (iHeight < this->ThumbnailSize)
       {
@@ -200,7 +200,7 @@ void ctkDICOMStudyItemWidgetPrivate::createThumbnails(ctkDICOMTaskResults *taskR
       }
     iHeight += 25;
     this->SeriesListTableWidget->setMinimumHeight(iHeight);
-  }
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -572,14 +572,11 @@ void ctkDICOMStudyItemWidget::removeSeriesItemWidget(const QString& seriesItem)
 void ctkDICOMStudyItemWidget::generateSeries()
 {
   Q_D(ctkDICOMStudyItemWidget);
+  d->createThumbnails();
   if (d->TaskPool && d->TaskPool->getNumberOfServers() > 0)
     {
     d->TaskPool->querySeries(d->StudyInstanceUID,
                                 QThread::NormalPriority);
-    }
-  else
-    {
-    d->createThumbnails();
     }
 }
 

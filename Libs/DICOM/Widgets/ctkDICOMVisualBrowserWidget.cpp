@@ -1856,9 +1856,9 @@ void ctkDICOMVisualBrowserWidget::onQueryPatient(bool forcefiltersEmpty)
     d->WarningPushButton->hide();
     }
 
+  d->updateGUIOnQueryPatient();
   if (filtersEmpty || ((d->TaskPool && d->TaskPool->getNumberOfServers() == 0) || !d->TaskPool))
     {
-    d->updateGUIOnQueryPatient();
     d->updateFiltersWarnings();
     }
   else if (d->TaskPool && d->TaskPool->getNumberOfServers() > 0)
