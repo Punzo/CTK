@@ -25,6 +25,7 @@
 
 #include "ctkDICOMIndexer.h"
 #include "ctkDICOMItem.h"
+#include "ctkDICOMTaskResults.h"
 
 class ctkDICOMDatabase;
 class ctkDataset;
@@ -98,7 +99,7 @@ public:
   {
     QMutexLocker locker(&this->Mutex);
     this->IndexingRequests.clear();
-    this->IndexingResults.clear();
+    this->TaskResults.clear();
   }
 
   int popIndexingRequest(IndexingRequest& indexingRequest)
@@ -118,24 +119,30 @@ public:
     this->IndexingRequests.push_back(indexingRequest);
   }
 
-  int indexingResultsCount()
+  int taskResultsCount()
   {
     QMutexLocker locker(&this->Mutex);
-    return this->IndexingResults.size();
+    return this->TaskResults.size();
   }
 
-  void popAllIndexingResults(QList<ctkDICOMDatabase::IndexingResult>& indexingResults)
+  ctkDICOMTaskResults* popTaskResult()
   {
     QMutexLocker locker(&this->Mutex);
-    indexingResults = this->IndexingResults;
-    this->IndexingResults.clear();
+    if (this->TaskResults.empty())
+      {
+      return nullptr;
+      }
+
+    ctkDICOMTaskResults* taskResults = this->TaskResults[0];
+    this->TaskResults.erase(this->TaskResults.begin());
+    return taskResults;
   }
 
-  int pushIndexingResult(const ctkDICOMDatabase::IndexingResult& indexingResult)
+  int pushTaskResult(ctkDICOMTaskResults* taskResult)
   {
     QMutexLocker locker(&this->Mutex);
-    this->IndexingResults.push_back(indexingResult);
-    return this->IndexingResults.size();
+    this->TaskResults.push_back(taskResult);
+    return this->TaskResults.size();
   }
 
   void modifiedTimeForFilepath(QMap<QString, QDateTime>& timesForPaths)
@@ -165,7 +172,7 @@ public:
   bool isEmpty()
   {
     QMutexLocker locker(&this->Mutex);
-    return (this->IndexingRequests.isEmpty() && this->IndexingResults.isEmpty());
+    return (this->IndexingRequests.isEmpty() && this->TaskResults.isEmpty());
   }
 
   bool isIndexingRequestsEmpty()
@@ -189,7 +196,7 @@ protected:
   QMap<QString, QDateTime> ModifiedTimeForFilepath;
 
   QList<IndexingRequest> IndexingRequests;
-  QList<ctkDICOMDatabase::IndexingResult> IndexingResults;
+  QList<ctkDICOMTaskResults*> TaskResults;
 
   QString DatabaseFilename;
   QStringList TagsToPrecache;
@@ -217,13 +224,14 @@ Q_SIGNALS:
   void progress(int);
   void progressDetail(QString);
   void progressStep(QString);
+  void progressTaskDetail(ctkDICOMTaskResults*);
   void updatingDatabase(bool);
   void indexingComplete(int, int, int, int);
 
 private:
 
   void processIndexingRequest(DICOMIndexingQueue::IndexingRequest& request, ctkDICOMDatabase& database);
-  void writeIndexingResultsToDatabase(ctkDICOMDatabase& database);
+  void writeTaskResultsToDatabase(ctkDICOMDatabase& database);
 
   DICOMIndexingQueue* RequestQueue;
   int NumberOfInstancesToInsert;
@@ -255,6 +263,7 @@ public:
   ~ctkDICOMIndexerPrivate();
 
   void pushIndexingRequest(const DICOMIndexingQueue::IndexingRequest& request);
+  void pushTaskResults(ctkDICOMTaskResults* taskResults);
 
 Q_SIGNALS:
   void startWorker();

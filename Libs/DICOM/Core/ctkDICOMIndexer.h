@@ -115,6 +115,13 @@ public:
   /// Kept for backward compatibility
   Q_INVOKABLE void addFile(ctkDICOMDatabase* db, const QString filePath, bool copyFile = false);
 
+
+  /// \brief Add taskResults to the queue. A worker in Qthread will process
+  /// the insert into the dicom database sequentially.
+  ///
+  /// This utulity method is used if we are not importing files or folders, but using query and retrieve ctk classes
+  Q_INVOKABLE void insertTaskResults(QSharedPointer<ctkDICOMTaskResults> taskResults);
+
   ///
   /// \brief Wait for all the indexing operations to complete
   /// This can be useful to ensure that importing is completed when background indexing is enabled.
@@ -126,6 +133,8 @@ Q_SIGNALS:
   void progressStep(QString);
   /// Detailed information about the current progress (e.g., name of currently processed file)
   void progressDetail(QString);
+  /// Detailed information about the current task insert progress
+  void progressTaskDetail(ctkDICOMTaskResults*);
   /// Progress in percentage
   void progress(int);
   /// Indexing is completed.

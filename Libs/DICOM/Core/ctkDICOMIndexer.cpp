@@ -87,6 +87,7 @@ void ctkDICOMIndexerPrivateWorker::start()
 {
   emit updatingDatabase(true);
   ctkDICOMDatabase database;
+  connect(&database, SIGNAL(progressTaskDetail(ctkDICOMTaskResults*)), this, SIGNAL(progressTaskDetail(ctkDICOMTaskResults*)));
   database.openDatabase(this->RequestQueue->databaseFilename());
   database.setTagsToPrecache(this->RequestQueue->tagsToPrecache());
   database.setTagsToExcludeFromStorage(this->RequestQueue->tagsToExcludeFromStorage());
@@ -107,6 +108,7 @@ void ctkDICOMIndexerPrivateWorker::start()
     // Make a local copy to avoid the need of frequent locking
     this->RequestQueue->modifiedTimeForFilepath(this->ModifiedTimeForFilepath);
     this->CompletedRequestCount = 0;
+
     do
     {
       if (this->RequestQueue->isStopRequested())
@@ -138,8 +140,10 @@ void ctkDICOMIndexerPrivateWorker::start()
     imagesCountAfter = database.imagesCount();
 
     double elapsedTimeInSeconds = timeProbe.elapsed() / 1000.0;
-    qDebug() << QString("DICOM indexer has updated display fields for %1 files [%2s]")
-      .arg(imagesCountAfter-imagesCountBefore).arg(QString::number(elapsedTimeInSeconds, 'f', 2));
+    logger.info(
+      QString("DICOM indexer has updated display fields for %1 files [%6s]")
+      .arg(imagesCountAfter-imagesCountBefore).arg(QString::number(elapsedTimeInSeconds, 'f',6))
+    );
 
   // restart if new requests has been queued during displayed fields update
   } while (!this->RequestQueue->isEmpty());
@@ -186,6 +190,8 @@ void ctkDICOMIndexerPrivateWorker::processIndexingRequest(DICOMIndexingQueue::In
   int currentFileIndex = 0;
   int alreadyAddedFileCount = 0;
   QStringList alreadyAddedFiles;
+
+  QList<ctkDICOMTaskResults*> indexingResults;
   foreach(const QString& filePath, indexingRequest.inputFilesPath)
   {
     int percent = int(this->TimePercentageIndexing * (this->CompletedRequestCount + double(currentFileIndex++) / double(indexingRequest.inputFilesPath.size()))
@@ -206,19 +212,19 @@ void ctkDICOMIndexerPrivateWorker::processIndexingRequest(DICOMIndexingQueue::In
     }
     this->ModifiedTimeForFilepath[filePath] = fileModifiedTime;
 
-    ctkDICOMDatabase::IndexingResult indexingResult;
-    indexingResult.dataset = QSharedPointer<ctkDICOMItem>(new ctkDICOMItem);
-    indexingResult.dataset->InitializeFromFile(filePath);
-    if (indexingResult.dataset->IsInitialized())
+    ctkDICOMTaskResults* indexingResult = new ctkDICOMTaskResults;
+    indexingResults.append(indexingResult);
+    indexingResult->setFilePath(filePath);
+    if (indexingResult->dataset()->IsInitialized())
     {
-      indexingResult.filePath = filePath;
-      indexingResult.copyFile = indexingRequest.copyFile;
-      indexingResult.overwriteExistingDataset = datasetAlreadyInDatabase;
-      int resultsCount = this->RequestQueue->pushIndexingResult(indexingResult);
+      indexingResult->setTypeOfTask(ctkDICOMTaskResults::TaskType::FileIndexing);
+      indexingResult->setCopyFile(indexingRequest.copyFile);
+      indexingResult->setOverwriteExistingDataset(datasetAlreadyInDatabase);
+      int resultsCount = this->RequestQueue->pushTaskResult(indexingResult);
       if (resultsCount >= REQUEST_RESULTS_CACHE_MAXIMUM_SIZE)
       {
         emit progressStep(ctkDICOMIndexer::tr("Updating database fields"));
-        this->writeIndexingResultsToDatabase(database);
+        this->writeTaskResultsToDatabase(database);
         emit progressStep(ctkDICOMIndexer::tr("Parsing DICOM files"));
       }
     }
@@ -235,7 +241,7 @@ void ctkDICOMIndexerPrivateWorker::processIndexingRequest(DICOMIndexingQueue::In
 
   if (alreadyAddedFileCount > 0)
   {
-    logger.debug(
+    logger.info(
       QString("Skipped %1 files that were already in the database: %2...")
       .arg(alreadyAddedFileCount)
       .arg(alreadyAddedFiles.join(", "))
@@ -245,26 +251,23 @@ void ctkDICOMIndexerPrivateWorker::processIndexingRequest(DICOMIndexingQueue::In
   if (this->RequestQueue->isIndexingRequestsEmpty())
   {
     emit progressStep(ctkDICOMIndexer::tr("Updating database fields"));
-    this->writeIndexingResultsToDatabase(database);
+    this->writeTaskResultsToDatabase(database);
     emit progressStep(ctkDICOMIndexer::tr("Parsing DICOM files"));
+    qDeleteAll(indexingResults);
+    indexingResults.clear();
   }
 
   float elapsedTimeInSeconds = timeProbe.elapsed() / 1000.0;
-  qDebug() << QString("DICOM indexer has successfully processed %1 files [%2s]")
-    .arg(currentFileIndex).arg(QString::number(elapsedTimeInSeconds, 'f', 2));
+  logger.info(
+    QString("DICOM indexer has successfully processed %1 files [%6s]")
+    .arg(currentFileIndex).arg(QString::number(elapsedTimeInSeconds, 'f', 6))
+  );
 }
 
 
 //------------------------------------------------------------------------------
-void ctkDICOMIndexerPrivateWorker::writeIndexingResultsToDatabase(ctkDICOMDatabase& database)
+void ctkDICOMIndexerPrivateWorker::writeTaskResultsToDatabase(ctkDICOMDatabase& database)
 {
-  QList<ctkDICOMDatabase::IndexingResult> indexingResults;
-  this->RequestQueue->popAllIndexingResults(indexingResults);
-  if (indexingResults.isEmpty())
-  {
-    return;
-  }
-
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
   QElapsedTimer timeProbe;
 #else
@@ -272,16 +275,31 @@ void ctkDICOMIndexerPrivateWorker::writeIndexingResultsToDatabase(ctkDICOMDataba
 #endif
   timeProbe.start();
 
-  this->NumberOfInstancesToInsert = indexingResults.size();
+  this->NumberOfInstancesToInsert = this->RequestQueue->taskResultsCount();
+  int initialTaskResultToInsert = this->NumberOfInstancesToInsert;
   this->NumberOfInstancesInserted = 0;
-  database.insert(indexingResults);
+
+
+  QList<ctkDICOMTaskResults*> taskResults;
+  while (this->NumberOfInstancesToInsert > 0)
+  {
+    ctkDICOMTaskResults* taskResult = this->RequestQueue->popTaskResult();
+    taskResults.append(taskResult);
+    this->NumberOfInstancesToInsert = this->RequestQueue->taskResultsCount();
+    this->NumberOfInstancesInserted++;
+  }
+
+  // we process all the taskResults at once, since it has a 10% perfomances improvements
+  database.insert(taskResults);
+
   this->NumberOfInstancesToInsert = 0;
   this->NumberOfInstancesInserted = 0;
 
   float elapsedTimeInSeconds = timeProbe.elapsed() / 1000.0;
-  qDebug() << QString("DICOM indexer has successfully inserted %1 files [%2s]")
-    .arg(indexingResults.count()).arg(QString::number(elapsedTimeInSeconds, 'f', 2));
-
+  logger.info(
+    QString("DICOM indexer has successfully inserted %1 datasets [%6s]")
+    .arg(initialTaskResultToInsert).arg(QString::number(elapsedTimeInSeconds, 'f', 6))
+  );
 }
 
 //------------------------------------------------------------------------------
@@ -304,10 +322,11 @@ ctkDICOMIndexerPrivate::ctkDICOMIndexerPrivate(ctkDICOMIndexer& o)
   connect(worker, &ctkDICOMIndexerPrivateWorker::progress, q_ptr, &ctkDICOMIndexer::progress);
   connect(worker, &ctkDICOMIndexerPrivateWorker::progressDetail, q_ptr, &ctkDICOMIndexer::progressDetail);
   connect(worker, &ctkDICOMIndexerPrivateWorker::progressStep, q_ptr, &ctkDICOMIndexer::progressStep);
+  connect(worker, &ctkDICOMIndexerPrivateWorker::progressTaskDetail, q_ptr, &ctkDICOMIndexer::progressTaskDetail);
   connect(worker, &ctkDICOMIndexerPrivateWorker::updatingDatabase, q_ptr, &ctkDICOMIndexer::updatingDatabase);
   connect(worker, &ctkDICOMIndexerPrivateWorker::indexingComplete, q_ptr, &ctkDICOMIndexer::indexingComplete);
 
-  this->WorkerThread.start();
+  this->WorkerThread.start(QThread::HighestPriority);
 }
 
 //------------------------------------------------------------------------------
@@ -323,8 +342,22 @@ ctkDICOMIndexerPrivate::~ctkDICOMIndexerPrivate()
 //------------------------------------------------------------------------------
 void ctkDICOMIndexerPrivate::pushIndexingRequest(const DICOMIndexingQueue::IndexingRequest& request)
 {
-  Q_Q(ctkDICOMIndexer);
   this->RequestQueue.pushIndexingRequest(request);
+  if (!this->RequestQueue.isIndexing())
+  {
+    // Start background indexing
+    this->RequestQueue.setIndexing(true);
+    QMap<QString, QDateTime> modifiedTimeForFilepath;
+    this->Database->allFilesModifiedTimes(modifiedTimeForFilepath);
+    this->RequestQueue.setModifiedTimeForFilepath(modifiedTimeForFilepath);
+    emit startWorker();
+  }
+}
+
+//------------------------------------------------------------------------------
+void ctkDICOMIndexerPrivate::pushTaskResults(ctkDICOMTaskResults* taskResults)
+{
+  this->RequestQueue.pushTaskResult(taskResults);
   if (!this->RequestQueue.isIndexing())
   {
     // Start background indexing
@@ -398,54 +431,66 @@ ctkDICOMDatabase* ctkDICOMIndexer::database()
   return d->Database;
 }
 
- //------------------------------------------------------------------------------
- void ctkDICOMIndexer::databaseFilenameChanged()
- {
-   Q_D(ctkDICOMIndexer);
-   if (d->Database)
-   {
-     d->RequestQueue.setDatabaseFilename(d->Database->databaseFilename());
-   }
-   else
-   {
-     d->RequestQueue.setDatabaseFilename(QString());
-   }
- }
+//------------------------------------------------------------------------------
+void ctkDICOMIndexer::databaseFilenameChanged()
+{
+  Q_D(ctkDICOMIndexer);
+  if (d->Database)
+  {
+    d->RequestQueue.setDatabaseFilename(d->Database->databaseFilename());
+  }
+  else
+  {
+    d->RequestQueue.setDatabaseFilename(QString());
+  }
+}
 
- //------------------------------------------------------------------------------
- void ctkDICOMIndexer::tagsToPrecacheChanged()
- {
-   Q_D(ctkDICOMIndexer);
-   if (d->Database)
-   {
-     d->RequestQueue.setTagsToPrecache(d->Database->tagsToPrecache());
-   }
-   else
-   {
-     d->RequestQueue.setTagsToPrecache(QStringList());
-   }
- }
+//------------------------------------------------------------------------------
+void ctkDICOMIndexer::tagsToPrecacheChanged()
+{
+  Q_D(ctkDICOMIndexer);
+  if (d->Database)
+  {
+    d->RequestQueue.setTagsToPrecache(d->Database->tagsToPrecache());
+  }
+  else
+  {
+    d->RequestQueue.setTagsToPrecache(QStringList());
+  }
+}
 
- //------------------------------------------------------------------------------
- void ctkDICOMIndexer::tagsToExcludeFromStorageChanged()
- {
-   Q_D(ctkDICOMIndexer);
-   if (d->Database)
-   {
-     d->RequestQueue.setTagsToExcludeFromStorage(d->Database->tagsToExcludeFromStorage());
-   }
-   else
-   {
-     d->RequestQueue.setTagsToExcludeFromStorage(QStringList());
-   }
- }
+//------------------------------------------------------------------------------
+void ctkDICOMIndexer::tagsToExcludeFromStorageChanged()
+{
+  Q_D(ctkDICOMIndexer);
+  if (d->Database)
+  {
+    d->RequestQueue.setTagsToExcludeFromStorage(d->Database->tagsToExcludeFromStorage());
+  }
+  else
+  {
+    d->RequestQueue.setTagsToExcludeFromStorage(QStringList());
+  }
+}
 
- //------------------------------------------------------------------------------
- void ctkDICOMIndexer::addFile(ctkDICOMDatabase* db, const QString filePath, bool copyFile/*=false*/)
- {
-   this->setDatabase(db);
-   this->addFile(filePath, copyFile);
- }
+//------------------------------------------------------------------------------
+void ctkDICOMIndexer::addFile(ctkDICOMDatabase* db, const QString filePath, bool copyFile/*=false*/)
+{
+  this->setDatabase(db);
+  this->addFile(filePath, copyFile);
+}
+
+//------------------------------------------------------------------------------
+void ctkDICOMIndexer::insertTaskResults(QSharedPointer<ctkDICOMTaskResults> taskResults)
+{
+  Q_D(ctkDICOMIndexer);
+
+  d->pushTaskResults(taskResults.data());
+  if (!d->BackgroundImportEnabled)
+  {
+    this->waitForImportFinished();
+  }
+}
 
 //------------------------------------------------------------------------------
 void ctkDICOMIndexer::addFile(const QString filePath, bool copyFile/*=false*/)
@@ -527,6 +572,8 @@ bool ctkDICOMIndexer::addDicomdir(ctkDICOMDatabase* db, const QString& directory
 //------------------------------------------------------------------------------
 bool ctkDICOMIndexer::addDicomdir(const QString& directoryName, bool copyFile/*=false*/)
 {
+  Q_D(ctkDICOMIndexer);
+
   //Initialize dicomdir with directory path
   QString dcmFilePath = directoryName;
   dcmFilePath.append("/DICOMDIR");
@@ -587,7 +634,6 @@ bool ctkDICOMIndexer::addDicomdir(const QString& directoryName, bool copyFile/*=
           continue;
         }
         logger.debug( "Study instance UID: " + QString(studyInstanceUID.c_str()) );
-
         while ((seriesRecord = studyRecord->nextSub(seriesRecord)) != NULL)
         {
           logger.debug( "Reading new Series:" );
@@ -604,7 +650,6 @@ bool ctkDICOMIndexer::addDicomdir(const QString& directoryName, bool copyFile/*=
             continue;
           }
           logger.debug( "Series instance UID: " + QString(seriesInstanceUID.c_str()) );
-
           while ((fileRecord = seriesRecord->nextSub(fileRecord)) != NULL)
           {
             if (fileRecord->findAndGetOFStringArray(DCM_ReferencedSOPInstanceUIDInFile, sopInstanceUID).bad()
@@ -634,10 +679,11 @@ bool ctkDICOMIndexer::addDicomdir(const QString& directoryName, bool copyFile/*=
       }
     }
     float elapsedTimeInSeconds = timeProbe.elapsed() / 1000.0;
-    qDebug()
-        << QString("DICOM indexer has successfully processed DICOMDIR in %1 [%2s]")
-           .arg(directoryName)
-           .arg(QString::number(elapsedTimeInSeconds,'f', 2));
+    logger.info(
+      QString("DICOM indexer has successfully processed DICOMDIR in %1 [%6s]")
+      .arg(directoryName)
+      .arg(QString::number(elapsedTimeInSeconds,'f', 6))
+    );
     this->addListOfFiles(listOfInstances, copyFile);
   }
   return success;

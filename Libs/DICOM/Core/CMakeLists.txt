@@ -27,10 +27,23 @@ set(KIT_SRCS
   ctkDICOMModel.h
   ctkDICOMPersonName.cpp
   ctkDICOMPersonName.h
+  ctkDICOMPoolManager.cpp
+  ctkDICOMPoolManager.h
+  ctkDICOMPoolManager_p.h
   ctkDICOMQuery.cpp
   ctkDICOMQuery.h
+  ctkDICOMQueryTask.cpp
+  ctkDICOMQueryTask.h
+  ctkDICOMQueryTask_p.h
   ctkDICOMRetrieve.cpp
   ctkDICOMRetrieve.h
+  ctkDICOMRetrieveTask.cpp
+  ctkDICOMRetrieveTask.h
+  ctkDICOMRetrieveTask_p.h
+  ctkDICOMServer.cpp
+  ctkDICOMServer.h
+  ctkDICOMTaskResults.cpp
+  ctkDICOMTaskResults.h
   ctkDICOMTester.cpp
   ctkDICOMTester.h
   ctkDICOMUtil.cpp
@@ -70,8 +83,16 @@ set(KIT_MOC_SRCS
   ctkDICOMIndexer_p.h
   ctkDICOMFilterProxyModel.h
   ctkDICOMModel.h
+  ctkDICOMPoolManager.h
+  ctkDICOMPoolManager_p.h
   ctkDICOMQuery.h
+  ctkDICOMQueryTask.h
+  ctkDICOMQueryTask_p.h
   ctkDICOMRetrieve.h
+  ctkDICOMRetrieveTask.h
+  ctkDICOMRetrieveTask_p.h
+  ctkDICOMServer.h
+  ctkDICOMTaskResults.h
   ctkDICOMTester.h
   )
 

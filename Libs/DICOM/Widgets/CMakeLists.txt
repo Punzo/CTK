@@ -33,8 +33,14 @@ set(KIT_SRCS
   ctkDICOMQueryWidget.h
   ctkDICOMObjectListWidget.cpp
   ctkDICOMObjectListWidget.h
+  ctkDICOMPatientItemWidget.cpp
+  ctkDICOMPatientItemWidget.h
+  ctkDICOMSeriesItemWidget.cpp
+  ctkDICOMSeriesItemWidget.h
   ctkDICOMServerNodeWidget.cpp
   ctkDICOMServerNodeWidget.h
+  ctkDICOMStudyItemWidget.cpp
+  ctkDICOMStudyItemWidget.h
   ctkDICOMTableManager.h
   ctkDICOMTableManager.cpp
   ctkDICOMTableView.cpp
@@ -43,6 +49,8 @@ set(KIT_SRCS
   ctkDICOMThumbnailGenerator.h
   ctkDICOMThumbnailListWidget.cpp
   ctkDICOMThumbnailListWidget.h
+  ctkDICOMVisualBrowserWidget.cpp
+  ctkDICOMVisualBrowserWidget.h
   )
 
 # Headers that should run through moc
@@ -57,11 +65,15 @@ set(KIT_MOC_SRCS
   ctkDICOMObjectModel.h
   ctkDICOMQueryRetrieveWidget.h
   ctkDICOMQueryWidget.h
+  ctkDICOMPatientItemWidget.h
+  ctkDICOMSeriesItemWidget.h
   ctkDICOMServerNodeWidget.h
+  ctkDICOMStudyItemWidget.h
   ctkDICOMTableManager.h
   ctkDICOMTableView.h
   ctkDICOMThumbnailGenerator.h
   ctkDICOMThumbnailListWidget.h
+  ctkDICOMVisualBrowserWidget.h
   )
 
 # UI files - includes new widgets
@@ -74,13 +86,18 @@ set(KIT_UI_FORMS
   Resources/UI/ctkDICOMQueryRetrieveWidget.ui
   Resources/UI/ctkDICOMQueryWidget.ui
   Resources/UI/ctkDICOMObjectListWidget.ui
+  Resources/UI/ctkDICOMPatientItemWidget.ui
+  Resources/UI/ctkDICOMSeriesItemWidget.ui
   Resources/UI/ctkDICOMServerNodeWidget.ui
+  Resources/UI/ctkDICOMStudyItemWidget.ui
   Resources/UI/ctkDICOMTableManager.ui
   Resources/UI/ctkDICOMTableView.ui
+  Resources/UI/ctkDICOMVisualBrowserWidget.ui
 )
 
 # Resources
 set(KIT_resources
+  Resources/UI/ctkDICOMWidget.qrc
 )
 
 # Target libraries - See CMake/ctkFunctionGetTargetLibraries.cmake
