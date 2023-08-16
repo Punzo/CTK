@@ -1,0 +1,304 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ctkDICOMServerNodeWidget2</class>
+ <widget class="QWidget" name="ctkDICOMServerNodeWidget2">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1679</width>
+    <height>257</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Server List</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout">
+   <property name="leftMargin">
+    <number>1</number>
+   </property>
+   <property name="topMargin">
+    <number>1</number>
+   </property>
+   <property name="rightMargin">
+    <number>1</number>
+   </property>
+   <property name="bottomMargin">
+    <number>1</number>
+   </property>
+   <property name="spacing">
+    <number>5</number>
+   </property>
+   <item row="3" column="2">
+    <widget class="QLabel" name="StoratePortLabel">
+     <property name="text">
+      <string>Storage Port</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="1">
+    <widget class="QLineEdit" name="StorageAETitle">
+     <property name="frame">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="0">
+    <widget class="QLabel" name="StorageAETitleLabel">
+     <property name="text">
+      <string>Storage AETitle</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="4" rowspan="2">
+    <layout class="QVBoxLayout" name="verticalLayout">
+     <property name="spacing">
+      <number>3</number>
+     </property>
+     <item>
+      <widget class="ctkPushButton" name="AddButton">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string> Add host</string>
+       </property>
+       <property name="icon">
+        <iconset resource="ctkDICOMWidget.qrc">
+         <normaloff>:/Icons/add.svg</normaloff>:/Icons/add.svg</iconset>
+       </property>
+       <property name="buttonTextAlignment">
+        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="ctkPushButton" name="TestButton">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string> Verify host</string>
+       </property>
+       <property name="icon">
+        <iconset resource="ctkDICOMWidget.qrc">
+         <normaloff>:/Icons/dns.svg</normaloff>:/Icons/dns.svg</iconset>
+       </property>
+       <property name="buttonTextAlignment">
+        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="ctkPushButton" name="RemoveButton">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string> Remove host</string>
+       </property>
+       <property name="icon">
+        <iconset resource="ctkDICOMWidget.qrc">
+         <normaloff>:/Icons/delete.svg</normaloff>:/Icons/delete.svg</iconset>
+       </property>
+       <property name="buttonTextAlignment">
+        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="verticalSpacer_2">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+       <property name="sizeType">
+        <enum>QSizePolicy::MinimumExpanding</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>20</width>
+         <height>30</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="ctkPushButton" name="RestoreButton">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string> Discard changes</string>
+       </property>
+       <property name="icon">
+        <iconset resource="ctkDICOMWidget.qrc">
+         <normaloff>:/Icons/restore.svg</normaloff>:/Icons/restore.svg</iconset>
+       </property>
+       <property name="buttonTextAlignment">
+        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="ctkPushButton" name="SaveButton">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string> Save changes</string>
+       </property>
+       <property name="icon">
+        <iconset resource="ctkDICOMWidget.qrc">
+         <normaloff>:/Icons/save.svg</normaloff>:/Icons/save.svg</iconset>
+       </property>
+       <property name="buttonTextAlignment">
+        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item row="2" column="0" colspan="4">
+    <widget class="QTableWidget" name="NodeTable">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="showDropIndicator" stdset="0">
+      <bool>false</bool>
+     </property>
+     <property name="selectionMode">
+      <enum>QAbstractItemView::SingleSelection</enum>
+     </property>
+     <property name="selectionBehavior">
+      <enum>QAbstractItemView::SelectRows</enum>
+     </property>
+     <property name="textElideMode">
+      <enum>Qt::ElideRight</enum>
+     </property>
+     <property name="columnCount">
+      <number>10</number>
+     </property>
+     <attribute name="horizontalHeaderVisible">
+      <bool>true</bool>
+     </attribute>
+     <attribute name="horizontalHeaderCascadingSectionResizes">
+      <bool>false</bool>
+     </attribute>
+     <attribute name="horizontalHeaderMinimumSectionSize">
+      <number>165</number>
+     </attribute>
+     <attribute name="horizontalHeaderDefaultSectionSize">
+      <number>165</number>
+     </attribute>
+     <attribute name="horizontalHeaderHighlightSections">
+      <bool>true</bool>
+     </attribute>
+     <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
+      <bool>false</bool>
+     </attribute>
+     <attribute name="horizontalHeaderStretchLastSection">
+      <bool>true</bool>
+     </attribute>
+     <attribute name="verticalHeaderShowSortIndicator" stdset="0">
+      <bool>false</bool>
+     </attribute>
+     <attribute name="verticalHeaderStretchLastSection">
+      <bool>false</bool>
+     </attribute>
+     <column>
+      <property name="text">
+       <string>Name</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Query/Retrieve</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Storage</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Calling AETitle</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Called AETitle</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Address</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Port</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Timeout</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Protocol</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Proxy</string>
+      </property>
+     </column>
+    </widget>
+   </item>
+   <item row="3" column="3">
+    <widget class="QLineEdit" name="StoragePort"/>
+   </item>
+   <item row="1" column="0" colspan="5">
+    <widget class="QLabel" name="ServersLabel">
+     <property name="text">
+      <string>Servers</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>ctkPushButton</class>
+   <extends>QPushButton</extends>
+   <header>ctkPushButton.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources>
+  <include location="ctkDICOMWidget.qrc"/>
+ </resources>
+ <connections/>
+</ui>

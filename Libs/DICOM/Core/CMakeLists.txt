@@ -16,6 +16,8 @@ set(KIT_SRCS
   ctkDICOMItem.h
   ctkDICOMDisplayedFieldGenerator.cpp
   ctkDICOMDisplayedFieldGenerator.h
+  ctkDICOMEcho.cpp
+  ctkDICOMEcho.h
   ctkDICOMFilterProxyModel.cpp
   ctkDICOMFilterProxyModel.h
   ctkDICOMIndexer.cpp
@@ -27,10 +29,23 @@ set(KIT_SRCS
   ctkDICOMModel.h
   ctkDICOMPersonName.cpp
   ctkDICOMPersonName.h
+  ctkDICOMTaskPool.cpp
+  ctkDICOMTaskPool.h
+  ctkDICOMTaskPool_p.h
   ctkDICOMQuery.cpp
   ctkDICOMQuery.h
+  ctkDICOMQueryTask.cpp
+  ctkDICOMQueryTask.h
+  ctkDICOMQueryTask_p.h
   ctkDICOMRetrieve.cpp
   ctkDICOMRetrieve.h
+  ctkDICOMRetrieveTask.cpp
+  ctkDICOMRetrieveTask.h
+  ctkDICOMRetrieveTask_p.h
+  ctkDICOMServer.cpp
+  ctkDICOMServer.h
+  ctkDICOMTaskResults.cpp
+  ctkDICOMTaskResults.h
   ctkDICOMTester.cpp
   ctkDICOMTester.h
   ctkDICOMUtil.cpp
@@ -66,12 +81,21 @@ set(KIT_MOC_SRCS
   ctkDICOMDisplayedFieldGenerator.h
   ctkDICOMDisplayedFieldGenerator_p.h
   ctkDICOMDisplayedFieldGeneratorRuleFactory.h
+  ctkDICOMEcho.h
   ctkDICOMIndexer.h
   ctkDICOMIndexer_p.h
   ctkDICOMFilterProxyModel.h
   ctkDICOMModel.h
+  ctkDICOMTaskPool.h
+  ctkDICOMTaskPool_p.h
   ctkDICOMQuery.h
+  ctkDICOMQueryTask.h
+  ctkDICOMQueryTask_p.h
   ctkDICOMRetrieve.h
+  ctkDICOMRetrieveTask.h
+  ctkDICOMRetrieveTask_p.h
+  ctkDICOMServer.h
+  ctkDICOMTaskResults.h
   ctkDICOMTester.h
   )
 

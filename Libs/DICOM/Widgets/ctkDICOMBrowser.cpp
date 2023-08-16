@@ -818,7 +818,6 @@ void ctkDICOMBrowser::onQueryRetrieveFinished()
 //----------------------------------------------------------------------------
 void ctkDICOMBrowser::onRemoveAction()
 {
-  Q_D(ctkDICOMBrowser);
   this->removeSelectedItems(ctkDICOMModel::SeriesType);
 }
 
@@ -1089,7 +1088,7 @@ bool ctkDICOMBrowser::confirmDeleteSelectedUIDs(QStringList uids)
     return false;
   }
 
-  ctkMessageBox confirmDeleteDialog;
+  ctkMessageBox confirmDeleteDialog(this);
   QString message = tr("Do you want to delete the following selected items?");
 
   // add the information about the selected UIDs
@@ -1422,7 +1421,7 @@ void ctkDICOMBrowser::exportSeries(QString dirPath, QStringList uids)
         QString errorString = tr("Unable to create export destination directory:\n\n%1"
             "\n\nHalting export.")
             .arg(destinationDir);
-        ctkMessageBox createDirectoryErrorMessageBox;
+        ctkMessageBox createDirectoryErrorMessageBox(this);
         createDirectoryErrorMessageBox.setText(errorString);
         createDirectoryErrorMessageBox.setIcon(QMessageBox::Warning);
         createDirectoryErrorMessageBox.exec();
@@ -1472,7 +1471,7 @@ void ctkDICOMBrowser::exportSeries(QString dirPath, QStringList uids)
         QString errorString = tr("Export destination file already exists:\n\n%1"
             "\n\nHalting export.")
             .arg(destinationFileName);
-        ctkMessageBox copyErrorMessageBox;
+        ctkMessageBox copyErrorMessageBox(this);
         copyErrorMessageBox.setText(errorString);
         copyErrorMessageBox.setIcon(QMessageBox::Warning);
         copyErrorMessageBox.exec();
@@ -1488,7 +1487,7 @@ void ctkDICOMBrowser::exportSeries(QString dirPath, QStringList uids)
             "\n\nHalting export.")
             .arg(filePath)
             .arg(destinationFileName);
-        ctkMessageBox copyErrorMessageBox;
+        ctkMessageBox copyErrorMessageBox(this);
         copyErrorMessageBox.setText(errorString);
         copyErrorMessageBox.setIcon(QMessageBox::Warning);
         copyErrorMessageBox.exec();

@@ -34,6 +34,7 @@ class ctkDICOMDatabasePrivate;
 class DcmDataset;
 class ctkDICOMAbstractThumbnailGenerator;
 class ctkDICOMDisplayedFieldGenerator;
+class ctkDICOMTaskResults;
 
 /// \ingroup DICOM_Core
 ///
@@ -52,7 +53,6 @@ class ctkDICOMDisplayedFieldGenerator;
 /// parallel to "dicom" directory called "thumbs".
 class CTK_DICOM_CORE_EXPORT ctkDICOMDatabase : public QObject
 {
-
   Q_OBJECT
   Q_PROPERTY(bool isOpen READ isOpen)
   Q_PROPERTY(bool isInMemory READ isInMemory)
@@ -64,17 +64,11 @@ class CTK_DICOM_CORE_EXPORT ctkDICOMDatabase : public QObject
   Q_PROPERTY(QStringList patientFieldNames READ patientFieldNames)
   Q_PROPERTY(QStringList studyFieldNames READ studyFieldNames)
   Q_PROPERTY(QStringList seriesFieldNames READ seriesFieldNames)
+  Q_PROPERTY(QStringList loadedSeries READ loadedSeries WRITE setLoadedSeries)
+  Q_PROPERTY(QStringList visibleSeries READ visibleSeries WRITE setVisibleSeries)
   Q_PROPERTY(bool useShortStoragePath READ useShortStoragePath WRITE setUseShortStoragePath)
 
 public:
-  struct IndexingResult
-  {
-    QString filePath;
-    QSharedPointer<ctkDICOMItem> dataset;
-    bool copyFile;
-    bool overwriteExistingDataset;
-  };
-
   explicit ctkDICOMDatabase(QObject *parent = 0);
   explicit ctkDICOMDatabase(QString databaseFile);
   virtual ~ctkDICOMDatabase();
@@ -250,17 +244,12 @@ public:
   ///
   Q_INVOKABLE void insert( const ctkDICOMItem& ctkDataset,
                               bool storeFile, bool generateThumbnail);
-  void insert ( DcmItem *item,
-                              bool storeFile = true, bool generateThumbnail = true);
+  void insert ( DcmItem *item, bool storeFile = true, bool generateThumbnail = true);
   Q_INVOKABLE void insert ( const QString& filePath,
                             bool storeFile = true, bool generateThumbnail = true,
                             bool createHierarchy = true,
                             const QString& destinationDirectoryName = QString() );
-
-  Q_INVOKABLE void insert(const QString& filePath, const ctkDICOMItem& ctkDataset,
-    bool storeFile = true, bool generateThumbnail = true);
-
-  Q_INVOKABLE void insert(const QList<ctkDICOMDatabase::IndexingResult>& indexingResults);
+  Q_INVOKABLE void insert(QList<ctkDICOMTaskResults*> taskResultsList);
 
   /// When a DICOM file is stored in the database (insert is called with storeFile=true) then
   /// path is constructed from study, series, and SOP instance UID.
@@ -306,9 +295,9 @@ public:
   /// if set to False the they are left in the database unchanged.
   /// By default clearCachedTags is disabled because it significantly increases deletion time
   /// on large databases.
-  Q_INVOKABLE bool removeSeries(const QString& seriesInstanceUID, bool clearCachedTags=false);
-  Q_INVOKABLE bool removeStudy(const QString& studyInstanceUID);
-  Q_INVOKABLE bool removePatient(const QString& patientID);
+  Q_INVOKABLE bool removeSeries(const QString& seriesInstanceUID, bool clearCachedTags=false, bool cleanup=true);
+  Q_INVOKABLE bool removeStudy(const QString& studyInstanceUID, bool cleanup=true);
+  Q_INVOKABLE bool removePatient(const QString& patientID, bool cleanup=true);
   /// Remove all patients, studies, series, which do not have associated images.
   /// If vacuum is set to true then the whole database content is attempted to
   /// cleaned from remnants of all previously deleted data from the file.
@@ -394,6 +383,14 @@ public:
   /// inserted under the same patient.
   Q_INVOKABLE static QString compositePatientID(const QString& patientID, const QString& patientsName, const QString& patientsBirthDate);
 
+  /// Set a list of loaded series
+  void setLoadedSeries(const QStringList& seriesList);
+  QStringList loadedSeries() const;
+
+  /// Set a list of visible series
+  void setVisibleSeries(const QStringList& seriesList);
+  QStringList visibleSeries() const;
+
 Q_SIGNALS:
 
   /// Things inserted to database.
@@ -443,6 +440,9 @@ Q_SIGNALS:
   void displayedFieldsUpdateProgress(int);
   /// Indicate displayed fields update finished
   void displayedFieldsUpdated();
+
+  /// Indicate that data from a Task Result has been inserted
+  void progressTaskDetail(ctkDICOMTaskResults*);
 
 protected:
   QScopedPointer<ctkDICOMDatabasePrivate> d_ptr;

@@ -90,21 +90,21 @@ void ctkDICOMItem::InitializeFromItem(DcmItem *dataset, bool takeOwnership)
       {
         d->m_SpecificCharacterSet = encoding.c_str();
       }
-      }
-      if (d->m_SpecificCharacterSet.isEmpty())
-      {
-        ///
-        /// see Bug # 6458:
-        /// There are cases, where different studies of the same person get encoded both with and without the SpecificCharacterSet attribute set.
-        /// DICOM says: default is ASCII / ISO_IR 6 / ISO 646
-        /// Since we experienced such mixed data, we supplement missing characterset information with the ISO_IR 100 / Latin1 character set.
-        /// Since Latin1 is a superset of ASCII, this will not cause problems. PLUS in most cases (Europe) we will guess right and suppress
-        /// "double patients" in applications.
-        ///
-        SetElementAsString( DCM_SpecificCharacterSet, "ISO_IR 100" );
-      }
+    }
+    if (d->m_SpecificCharacterSet.isEmpty())
+    {
+      ///
+      /// see Bug # 6458:
+      /// There are cases, where different studies of the same person get encoded both with and without the SpecificCharacterSet attribute set.
+      /// DICOM says: default is ASCII / ISO_IR 6 / ISO 646
+      /// Since we experienced such mixed data, we supplement missing characterset information with the ISO_IR 100 / Latin1 character set.
+      /// Since Latin1 is a superset of ASCII, this will not cause problems. PLUS in most cases (Europe) we will guess right and suppress
+      /// "double patients" in applications.
+      ///
+      SetElementAsString( DCM_SpecificCharacterSet, "ISO_IR 100" );
     }
   }
+}
 
 
 void ctkDICOMItem::InitializeFromFile(const QString& filename,

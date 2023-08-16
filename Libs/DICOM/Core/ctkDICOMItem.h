@@ -247,6 +247,11 @@ class CTK_DICOM_CORE_EXPORT ctkDICOMItem
     ///
     static QString TagVR( const DcmTag& tag );
 
+    ///
+    /// \brief return dcm item
+    ///
+    DcmItem& GetDcmItem() const;
+
 protected:
 
     ///
@@ -266,8 +271,6 @@ protected:
     virtual void SetStoredSerialization(QString serializedDataset);
 
   QScopedPointer<ctkDICOMItemPrivate> d_ptr;
-
-  DcmItem& GetDcmItem() const;
 
 private:
   Q_DECLARE_PRIVATE(ctkDICOMItem);
