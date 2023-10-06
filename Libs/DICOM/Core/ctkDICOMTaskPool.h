@@ -153,8 +153,8 @@ public:
                                                              const QString& seriesInstanceUID,
                                                              QThread::Priority priority = QThread::HighPriority);
 
-  /// Maximum number of concurrent Qthread span by the threadPool in the task pool
-  /// NOTE: there is another Qthread span by the ctkDICOMIndexer which is not count in this variable.
+  /// Maximum number of concurrent QThreads spawned by the threadPool in the task pool
+  /// NOTE: there is another QThread spawned by the ctkDICOMIndexer which is not counted in this variable.
   /// default: cpu threads on the system
   int maximumThreadCount() const;
   void setMaximumThreadCount(const int& maximumThreadCount);
