@@ -2834,15 +2834,15 @@ void ctkDICOMVisualBrowserWidget::removeSelectedItems(ctkDICOMModel::IndexType l
 
   foreach (const QString& uid, selectedSeriesUIDs)
   {
-    d->DicomDatabase->removeSeries(uid, false, level == ctkDICOMModel::RootType);
+    d->DicomDatabase->removeSeries(uid, false, true);
   }
   foreach (const QString& uid, selectedStudyUIDs)
   {
-    d->DicomDatabase->removeStudy(uid, level == ctkDICOMModel::RootType);
+    d->DicomDatabase->removeStudy(uid, true);
   }
   foreach (const QString& uid, selectedPatientItems)
   {
-    d->DicomDatabase->removePatient(uid, level == ctkDICOMModel::RootType);
+    d->DicomDatabase->removePatient(uid, true);
   }
   QApplication::restoreOverrideCursor();
 }
