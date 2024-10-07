@@ -1678,11 +1678,13 @@ void ctkDICOMVisualBrowserWidgetPrivate::getPatientsMetadata(bool queryRetrieve)
       continue;
     }
 
-    bool query = queryRetrieve;
+    QSettings settings;
+    bool queryRetrieveEnabled = settings.value("DICOM/QueryRetrieveEnabled", "").toBool();
+    bool query = queryRetrieve && queryRetrieveEnabled;
     bool retrieve = false;
     if (patientItemWidget == currentPatientItemWidget)
     {
-      retrieve = queryRetrieve;
+      retrieve = queryRetrieve && queryRetrieveEnabled;
     }
 
     patientItemWidget->generateStudies(query, retrieve);
@@ -3322,7 +3324,9 @@ void ctkDICOMVisualBrowserWidget::onPatientItemChanged(int index)
     return;
   }
 
-  patientItem->generateStudies();
+  QSettings settings;
+  bool queryRetrieveEnabled = settings.value("DICOM/QueryRetrieveEnabled", "").toBool();
+  patientItem->generateStudies(queryRetrieveEnabled, queryRetrieveEnabled);
 }
 
 //------------------------------------------------------------------------------
