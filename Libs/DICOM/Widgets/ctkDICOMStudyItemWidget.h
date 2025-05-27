@@ -212,7 +212,7 @@ public:
   Q_INVOKABLE QString stoppedJobUID() const;
 
 public Q_SLOTS:
-  void generateSeries(bool query = true, bool retrieve = true);
+  void generateSeries(bool query = true, bool retrieve = true, bool createUI = true);
   void updateGUIFromScheduler(const QVariant&);
   void onJobStarted(const QVariant&);
   void onJobUserStopped(const QVariant&);

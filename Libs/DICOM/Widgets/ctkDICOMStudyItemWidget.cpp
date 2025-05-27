@@ -72,7 +72,7 @@ public:
   int calculateNumerOfSeriesPerRow();
   int calculateThumbnailSizeInPixel(const ctkDICOMStudyItemWidget::ThumbnailSizeOption& thumbnailSize);
   void addEmptySeriesItemWidget(int rowIndex, int columnIndex);
-  ctkDICOMSeriesItemWidget* isSeriesItemAlreadyAdded(const QString& seriesItem);
+  bool isSeriesItemAlreadyAdded(const QString& seriesItem);
 
   QString FilteringSeriesDescription;
   QStringList FilteringModalities;
@@ -201,23 +201,28 @@ void ctkDICOMStudyItemWidgetPrivate::createSeries()
   int seriesIndex = 0;
   foreach (QString seriesItem, seriesList)
   {
-    ctkDICOMSeriesItemWidget* seriesItemWidget = this->isSeriesItemAlreadyAdded(seriesItem);
+    ctkDICOMSeriesItemWidget* seriesItemWidget = q->seriesItemWidgetBySeriesItem(seriesItem);
     if (seriesItemWidget)
     {
+      bool show = false;
+      QString modality = this->DicomDatabase->fieldForSeries("Modality", seriesItem);
+      QString seriesDescription = this->DicomDatabase->fieldForSeries("SeriesDescription", seriesItem);
+      // Filter with modality and seriesDescription
+      if ((this->FilteringSeriesDescription.isEmpty() ||
+           seriesDescription.contains(this->FilteringSeriesDescription, Qt::CaseInsensitive)) &&
+          (this->FilteringModalities.contains("Any") || this->FilteringModalities.contains(modality)))
+      {
+        show = true;
+      }
+
+      seriesItemWidget->setVisible(show);
       this->FilteredSeriesCount++;
       seriesIndex++;
       seriesItemWidget->generateInstances(queryEnabled, retrieveEnabled);
-      continue;
     }
-
-    QString modality = this->DicomDatabase->fieldForSeries("Modality", seriesItem);
-    QString seriesDescription = this->DicomDatabase->fieldForSeries("SeriesDescription", seriesItem);
-    // Filter with modality and seriesDescription
-    if ((this->FilteringSeriesDescription.isEmpty() ||
-         seriesDescription.contains(this->FilteringSeriesDescription, Qt::CaseInsensitive)) &&
-        (this->FilteringModalities.contains("Any") || this->FilteringModalities.contains(modality)))
+    else
     {
-      int seriesNumber = this->DicomDatabase->fieldForSeries("SeriesNumber", seriesItem).toInt();
+    int seriesNumber = this->DicomDatabase->fieldForSeries("SeriesNumber", seriesItem).toInt();
       while (seriesMap.contains(seriesNumber))
       {
         seriesNumber++;
@@ -240,6 +245,15 @@ void ctkDICOMStudyItemWidgetPrivate::createSeries()
 
     QString modality = this->DicomDatabase->fieldForSeries("Modality", seriesItem);
     QString seriesDescription = this->DicomDatabase->fieldForSeries("SeriesDescription", seriesItem);
+    bool show = false;
+    // Filter with modality and seriesDescription
+    if ((this->FilteringSeriesDescription.isEmpty() ||
+         seriesDescription.contains(this->FilteringSeriesDescription, Qt::CaseInsensitive)) &&
+        (this->FilteringModalities.contains("Any") || this->FilteringModalities.contains(modality)))
+    {
+      show = true;
+    }
+
     if (seriesDescription.isEmpty())
     {
       seriesDescription = ctkDICOMStudyItemWidget::tr("UNDEFINED");
@@ -248,6 +262,7 @@ void ctkDICOMStudyItemWidgetPrivate::createSeries()
       q->addSeriesItemWidget(seriesIndex, seriesItem, seriesInstanceUID, modality, seriesDescription);
     if (seriesItemWidget)
     {
+      seriesItemWidget->setVisible(show);
       seriesItemWidget->generateInstances(this->QueryOn, this->RetrieveOn);
     }
     seriesIndex++;
@@ -365,9 +380,9 @@ void ctkDICOMStudyItemWidgetPrivate::addEmptySeriesItemWidget(int rowIndex, int 
 }
 
 //------------------------------------------------------------------------------
-ctkDICOMSeriesItemWidget* ctkDICOMStudyItemWidgetPrivate::isSeriesItemAlreadyAdded(const QString& seriesItem)
+bool ctkDICOMStudyItemWidgetPrivate::isSeriesItemAlreadyAdded(const QString& seriesItem)
 {
-  ctkDICOMSeriesItemWidget* seriesItemWidgetFound = nullptr;
+  bool alreadyAdded = false;
   for (int rowIndex = 0; rowIndex < this->SeriesListTableWidget->rowCount(); rowIndex++)
   {
     for (int columnIndex = 0; columnIndex < this->SeriesListTableWidget->columnCount(); columnIndex++)
@@ -381,18 +396,18 @@ ctkDICOMSeriesItemWidget* ctkDICOMStudyItemWidgetPrivate::isSeriesItemAlreadyAdd
 
       if (seriesItemWidget->seriesItem() == seriesItem)
       {
-        seriesItemWidgetFound = seriesItemWidget;
+        alreadyAdded = true;
         break;
       }
     }
 
-    if (seriesItemWidgetFound)
+    if (alreadyAdded)
     {
       break;
     }
   }
 
-  return seriesItemWidgetFound;
+  return alreadyAdded;
 }
 
 //----------------------------------------------------------------------------
@@ -567,6 +582,11 @@ void ctkDICOMStudyItemWidget::setScheduler(QSharedPointer<ctkDICOMScheduler> sch
 ctkDICOMDatabase* ctkDICOMStudyItemWidget::dicomDatabase() const
 {
   Q_D(const ctkDICOMStudyItemWidget);
+  if (!d->DicomDatabase)
+  {
+    logger.error("no DICOM Database has been set. \n");
+    return nullptr;
+  }
   return d->DicomDatabase.data();
 }
 
@@ -752,13 +772,16 @@ ctkCollapsibleGroupBox* ctkDICOMStudyItemWidget::collapsibleGroupBox()
 }
 
 //------------------------------------------------------------------------------
-void ctkDICOMStudyItemWidget::generateSeries(bool query, bool retrieve)
+void ctkDICOMStudyItemWidget::generateSeries(bool query, bool retrieve, bool createUI)
 {
   Q_D(ctkDICOMStudyItemWidget);
 
   d->QueryOn = query;
   d->RetrieveOn = retrieve;
-  d->createSeries();
+  if (createUI)
+  {
+    d->createSeries();
+  }
   if (query && d->Scheduler &&
       d->Scheduler->queryRetrieveServersCount() > 0)
   {
@@ -775,20 +798,17 @@ void ctkDICOMStudyItemWidget::updateGUIFromScheduler(const QVariant& data)
   Q_D(ctkDICOMStudyItemWidget);
 
   ctkDICOMJobDetail td = data.value<ctkDICOMJobDetail>();
-  if (td.JobUID.isEmpty())
-  {
-    d->createSeries();
-    return;
-  }
-
-  if (td.StudyInstanceUID != d->StudyInstanceUID)
+  if (td.JobUID.isEmpty() || td.StudyInstanceUID != d->StudyInstanceUID)
   {
     return;
   }
 
   if (td.JobType == ctkDICOMJobResponseSet::JobType::QuerySeries)
   {
-    d->createSeries();
+    if (!this->collapsed())
+    {
+      d->createSeries();
+    }
   }
   else if (td.JobType == ctkDICOMJobResponseSet::JobType::QueryInstances ||
            td.JobType == ctkDICOMJobResponseSet::JobType::RetrieveSOPInstance ||
