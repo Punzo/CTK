@@ -40,6 +40,10 @@ set(KIT_SRCS
   ctkDICOMPatientItemWidget.h
   ctkDICOMSeriesItemWidget.cpp
   ctkDICOMSeriesItemWidget.h
+  ctkDICOMSeriesDelegate.cpp
+  ctkDICOMSeriesDelegate.h
+  ctkDICOMSeriesTableView.cpp
+  ctkDICOMSeriesTableView.h
   ctkDICOMServerNodeWidget.cpp
   ctkDICOMServerNodeWidget.h
   ctkDICOMServerNodeWidget2.cpp
@@ -72,6 +76,8 @@ set(KIT_MOC_SRCS
   ctkDICOMQueryWidget.h
   ctkDICOMPatientItemWidget.h
   ctkDICOMSeriesItemWidget.h
+  ctkDICOMSeriesDelegate.h
+  ctkDICOMSeriesTableView.h
   ctkDICOMServerNodeWidget.h
   ctkDICOMServerNodeWidget2.h
   ctkDICOMStudyItemWidget.h

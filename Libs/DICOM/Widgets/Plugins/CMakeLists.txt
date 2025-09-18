@@ -22,6 +22,9 @@ set(PLUGIN_SRCS
   ctkDICOMServerNodeWidget2Plugin.cpp
   ctkDICOMServerNodeWidget2Plugin.h
 
+  ctkDICOMSeriesTableViewPlugin.cpp
+  ctkDICOMSeriesTableViewPlugin.h
+
   ctkDICOMTableManagerPlugin.cpp
   ctkDICOMTableManagerPlugin.h
   ctkDICOMTableViewPlugin.cpp
@@ -37,6 +40,7 @@ set(PLUGIN_MOC_SRCS
   ctkDICOMJobListWidgetPlugin.h
   ctkDICOMQueryRetrieveWidgetPlugin.h
   ctkDICOMServerNodeWidget2Plugin.h
+  ctkDICOMSeriesTableViewPlugin.h
   ctkDICOMTableManagerPlugin.h
   ctkDICOMTableViewPlugin.h
   ctkDICOMVisualBrowserWidgetPlugin.h

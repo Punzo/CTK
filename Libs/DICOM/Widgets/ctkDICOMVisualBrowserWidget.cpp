@@ -899,7 +899,7 @@ void ctkDICOMVisualBrowserWidgetPrivate::retrieveSeries()
     return;
   }
 
-  ctkDICOMPatientItemWidget* currentPatientItemWidget =
+  /*ctkDICOMPatientItemWidget* currentPatientItemWidget =
     qobject_cast<ctkDICOMPatientItemWidget*>(this->PatientsTabWidget->currentWidget());
   if (!currentPatientItemWidget)
   {
@@ -1128,7 +1128,7 @@ void ctkDICOMVisualBrowserWidgetPrivate::retrieveSeries()
     }
 
     seriesItemWidget->setStopJobs(false);
-  }
+  }*/
 }
 
 //----------------------------------------------------------------------------
@@ -1150,12 +1150,12 @@ void ctkDICOMVisualBrowserWidgetPrivate::removeAllPatientItemWidgets()
     q->disconnect(patientItemWidget, SIGNAL(customContextMenuRequested(const QPoint&)),
                   q, SLOT(showPatientContextMenu(const QPoint&)));
 
-    QList<ctkDICOMStudyItemWidget*> studyItemWidgets = patientItemWidget->studyItemWidgetsList();
+    /*QList<ctkDICOMStudyItemWidget*> studyItemWidgets = patientItemWidget->studyItemWidgetsList();
     foreach (ctkDICOMStudyItemWidget* studyItemWidget, studyItemWidgets)
     {
       q->disconnect(studyItemWidget->seriesListTableWidget(), SIGNAL(itemDoubleClicked(QTableWidgetItem*)),
                     q, SLOT(onLoad()));
-    }
+    }*/
 
     delete patientItemWidget;
     patientIndex--;
@@ -1225,7 +1225,7 @@ void ctkDICOMVisualBrowserWidgetPrivate::updateSeriesTablesSelection(ctkDICOMSer
     return;
   }
 
-  QList<ctkDICOMStudyItemWidget*> studyItemWidgetsList = currentPatientItemWidget->studyItemWidgetsList();
+  /*QList<ctkDICOMStudyItemWidget*> studyItemWidgetsList = currentPatientItemWidget->studyItemWidgetsList();
   foreach (ctkDICOMStudyItemWidget* studyItemWidget, studyItemWidgetsList)
   {
     if (!studyItemWidget)
@@ -1265,7 +1265,7 @@ void ctkDICOMVisualBrowserWidgetPrivate::updateSeriesTablesSelection(ctkDICOMSer
         return;
       }
     }
-  }
+  }*/
 }
 
 //----------------------------------------------------------------------------
@@ -1604,7 +1604,7 @@ ctkDICOMSeriesItemWidget* ctkDICOMVisualBrowserWidgetPrivate::getCurrentPatientS
     return nullptr;
   }
 
-  QList<ctkDICOMSeriesItemWidget*> seriesItemWidgetsList = studyItemWidget->seriesItemWidgetsList();
+  /*QList<ctkDICOMSeriesItemWidget*> seriesItemWidgetsList = studyItemWidget->seriesItemWidgetsList();
   foreach (ctkDICOMSeriesItemWidget* seriesItemWidget, seriesItemWidgetsList)
   {
     if (!seriesItemWidget || seriesItemWidget->seriesInstanceUID() != seriesInstanceUID)
@@ -1613,7 +1613,7 @@ ctkDICOMSeriesItemWidget* ctkDICOMVisualBrowserWidgetPrivate::getCurrentPatientS
     }
 
     return seriesItemWidget;
-  }
+  }*/
 
   return nullptr;
 }
@@ -2619,7 +2619,7 @@ void ctkDICOMVisualBrowserWidget::showMetadata(const QStringList& fileList)
 //------------------------------------------------------------------------------
 void ctkDICOMVisualBrowserWidget::forceSeriesRetrieve(const QList<QWidget *> &selectedWidgets)
 {
-  foreach (QWidget* selectedWidget, selectedWidgets)
+  /*foreach (QWidget* selectedWidget, selectedWidgets)
   {
     if (!selectedWidget)
     {
@@ -2647,7 +2647,7 @@ void ctkDICOMVisualBrowserWidget::forceSeriesRetrieve(const QList<QWidget *> &se
         seriesItemWidget->forceRetrieve();
       }
     }
-  }
+  }*/
 }
 
 //------------------------------------------------------------------------------
@@ -2767,7 +2767,7 @@ void ctkDICOMVisualBrowserWidget::removeSelectedItems(ctkDICOMModel::IndexType l
               continue;
             }
 
-            studyItemWidget->removeSeriesItemWidget(seriesItemWidget->seriesItem());
+            //studyItemWidget->removeSeriesItemWidget(seriesItemWidget->seriesItem());
             break;
           }
         }
@@ -3245,7 +3245,8 @@ void ctkDICOMVisualBrowserWidget::onJobFinished(QList<QVariant> datas)
 
     if (td.JobType == ctkDICOMJobResponseSet::JobType::QuerySeries ||
         td.JobType == ctkDICOMJobResponseSet::JobType::RetrieveSOPInstance ||
-        td.JobType == ctkDICOMJobResponseSet::JobType::RetrieveSeries)
+        td.JobType == ctkDICOMJobResponseSet::JobType::RetrieveSeries ||
+        td.JobType == ctkDICOMJobResponseSet::JobType::ThumbnailGenerator)
     {
       ctkDICOMPatientItemWidget* patientItemWidget = this->patientItemWidgetByPatientID(td.PatientID);
       if (patientItemWidget)
@@ -3538,7 +3539,7 @@ void ctkDICOMVisualBrowserWidget::showSeriesContextMenu(const QPoint& point)
     {
       continue;
     }
-    QTableWidget* seriesListTableWidget = studyItemWidget->seriesListTableWidget();
+    /*QTableWidget* seriesListTableWidget = studyItemWidget->seriesListTableWidget();
     QList<QTableWidgetItem*> selectedItems = seriesListTableWidget->selectedItems();
     foreach (QTableWidgetItem* selectedItem, selectedItems)
     {
@@ -3553,7 +3554,7 @@ void ctkDICOMVisualBrowserWidget::showSeriesContextMenu(const QPoint& point)
         qobject_cast<ctkDICOMSeriesItemWidget*>(seriesListTableWidget->cellWidget(row, column));
 
       selectedWidgets.append(seriesItemWidget);
-    }
+    }*/
   }
 
   int numberOfSelectedSeries = selectedWidgets.count();

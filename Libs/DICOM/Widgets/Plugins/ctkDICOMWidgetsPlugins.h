@@ -30,6 +30,7 @@
 #include "ctkDICOMJobListWidgetPlugin.h"
 #include "ctkDICOMQueryRetrieveWidgetPlugin.h"
 #include "ctkDICOMServerNodeWidget2Plugin.h"
+#include "ctkDICOMSeriesTableViewPlugin.h"
 #include "ctkDICOMTableManagerPlugin.h"
 #include "ctkDICOMTableViewPlugin.h"
 #include "ctkDICOMVisualBrowserWidgetPlugin.h"
@@ -50,6 +51,7 @@ public:
     plugins << new ctkDICOMJobListWidgetPlugin;
     plugins << new ctkDICOMQueryRetrieveWidgetPlugin;
     plugins << new ctkDICOMServerNodeWidget2Plugin;
+    plugins << new ctkDICOMSeriesTableViewPlugin;
     plugins << new ctkDICOMTableManagerPlugin;
     plugins << new ctkDICOMTableViewPlugin;
     plugins << new ctkDICOMVisualBrowserWidgetPlugin;

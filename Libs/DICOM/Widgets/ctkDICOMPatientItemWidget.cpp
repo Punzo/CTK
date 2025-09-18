@@ -561,16 +561,6 @@ void ctkDICOMPatientItemWidgetPrivate::saveAllowedServersStringListToChildren(co
     }
 
     studyItemWidget->setAllowedServers(allowedServers);
-
-    foreach (ctkDICOMSeriesItemWidget* seriesItemWidget, studyItemWidget->seriesItemWidgetsList())
-    {
-      if (!seriesItemWidget)
-      {
-        continue;
-      }
-
-      seriesItemWidget->setAllowedServers(allowedServers);
-    }
   }
 }
 
@@ -775,14 +765,14 @@ void ctkDICOMPatientItemWidget::addStudyItemWidget(const QString& studyItem)
   studyItemWidget->setCollapsed(true);
   studyItemWidget->setContextMenuPolicy(Qt::CustomContextMenu);
 
-  this->connect(studyItemWidget->seriesListTableWidget(), SIGNAL(itemDoubleClicked(QTableWidgetItem *)),
-                d->VisualDICOMBrowser.data(), SLOT(onLoad()));
+  /*this->connect(studyItemWidget->seriesListTableView() SIGNAL(itemDoubleClicked(QTableWidgetItem *)),
+                d->VisualDICOMBrowser.data(), SLOT(onLoad()));*/
   this->connect(studyItemWidget, SIGNAL(customContextMenuRequested(const QPoint&)),
                 d->VisualDICOMBrowser.data(), SLOT(showStudyContextMenu(const QPoint&)));
-  this->connect(studyItemWidget->seriesListTableWidget(), SIGNAL(itemClicked(QTableWidgetItem *)),
+  /*this->connect(studyItemWidget->seriesListTableView(), SIGNAL(itemClicked(QTableWidgetItem *)),
                 this, SLOT(onSeriesItemClicked()));
-  this->connect(studyItemWidget->seriesListTableWidget(), SIGNAL(itemSelectionChanged()),
-                this, SLOT(raiseSelectedSeriesJobsPriority()));
+  this->connect(studyItemWidget->seriesListTableView(), SIGNAL(itemSelectionChanged()),
+                this, SLOT(raiseSelectedSeriesJobsPriority()));*/
   this->connect(studyItemWidget, SIGNAL(updateGUIFinished()),
                 this, SIGNAL(updateGUIFinished()));
 
@@ -804,14 +794,14 @@ void ctkDICOMPatientItemWidget::removeStudyItemWidget(const QString& studyItem)
   {
     this->disconnect(d->StudyItemWidgetsConnectionMap[studyItem]);
   }
-  this->disconnect(studyItemWidget->seriesListTableWidget(), SIGNAL(itemDoubleClicked(QTableWidgetItem *)),
-                   d->VisualDICOMBrowser.data(), SLOT(onLoad()));
+  /*this->disconnect(studyItemWidget->seriesListTableWidget(), SIGNAL(itemDoubleClicked(QTableWidgetItem *)),
+                   d->VisualDICOMBrowser.data(), SLOT(onLoad()));*/
   this->disconnect(studyItemWidget, SIGNAL(customContextMenuRequested(const QPoint&)),
                    d->VisualDICOMBrowser.data(), SLOT(showStudyContextMenu(const QPoint&)));
-  this->disconnect(studyItemWidget->seriesListTableWidget(), SIGNAL(itemClicked(QTableWidgetItem *)),
+  /*this->disconnect(studyItemWidget->seriesListTableWidget(), SIGNAL(itemClicked(QTableWidgetItem *)),
                    this, SLOT(onSeriesItemClicked()));
   this->disconnect(studyItemWidget->seriesListTableWidget(), SIGNAL(itemSelectionChanged()),
-                   this, SLOT(raiseSelectedSeriesJobsPriority()));
+                   this, SLOT(raiseSelectedSeriesJobsPriority()));*/
   d->StudyItemWidgetsList.removeOne(studyItemWidget);
   delete studyItemWidget;
 }
@@ -860,7 +850,7 @@ ctkDICOMStudyItemWidget *ctkDICOMPatientItemWidget::studyItemWidgetByStudyInstan
 ctkDICOMStudyItemWidget *ctkDICOMPatientItemWidget::studyItemWidgetBySeriesInstanceUID(const QString& seriesInstanceUID)
 {
   Q_D(ctkDICOMPatientItemWidget);
-  for (int studyIndex = 0; studyIndex < d->StudyItemWidgetsList.size(); ++studyIndex)
+  /*for (int studyIndex = 0; studyIndex < d->StudyItemWidgetsList.size(); ++studyIndex)
   {
     ctkDICOMStudyItemWidget* studyItemWidget =
       qobject_cast<ctkDICOMStudyItemWidget*>(d->StudyItemWidgetsList[studyIndex]);
@@ -870,7 +860,7 @@ ctkDICOMStudyItemWidget *ctkDICOMPatientItemWidget::studyItemWidgetBySeriesInsta
     }
 
     return studyItemWidget;
-  }
+  }*/
 
   return nullptr;
 }
@@ -1068,7 +1058,8 @@ void ctkDICOMPatientItemWidget::onJobFinished(QVariant data)
 
   if (td.JobType == ctkDICOMJobResponseSet::JobType::QuerySeries ||
     td.JobType == ctkDICOMJobResponseSet::JobType::RetrieveSeries ||
-    td.JobType == ctkDICOMJobResponseSet::JobType::RetrieveSOPInstance)
+    td.JobType == ctkDICOMJobResponseSet::JobType::RetrieveSOPInstance ||
+    td.JobType == ctkDICOMJobResponseSet::JobType::ThumbnailGenerator)
   {
     ctkDICOMStudyItemWidget* studyItemWidget = this->studyItemWidgetByStudyInstanceUID(td.StudyInstanceUID);
     if (studyItemWidget)
@@ -1097,7 +1088,7 @@ void ctkDICOMPatientItemWidget::onInserterJobFinished(QVariant data)
       continue;
     }
 
-    QTableWidget* seriesListTableWidget = studyItemWidget->seriesListTableWidget();
+    /*QTableWidget* seriesListTableWidget = studyItemWidget->seriesListTableWidget();
     for (int row = 0; row < seriesListTableWidget->rowCount(); row++)
     {
       for (int column = 0; column < seriesListTableWidget->columnCount(); column++)
@@ -1116,7 +1107,7 @@ void ctkDICOMPatientItemWidget::onInserterJobFinished(QVariant data)
           seriesItemWidget->onJobFinished(data);
         }
       }
-    }
+    }*/
   }
 }
 
@@ -1130,7 +1121,7 @@ void ctkDICOMPatientItemWidget::raiseSelectedSeriesJobsPriority()
     return;
   }
 
-  QList<ctkDICOMSeriesItemWidget*> seriesWidgets;
+  /*QList<ctkDICOMSeriesItemWidget*> seriesWidgets;
   QList<ctkDICOMSeriesItemWidget*> selectedSeriesWidgets;
   foreach (ctkDICOMStudyItemWidget* studyItemWidget, d->StudyItemWidgetsList)
   {
@@ -1184,7 +1175,7 @@ void ctkDICOMPatientItemWidget::raiseSelectedSeriesJobsPriority()
     seriesWidget->setRaiseJobsPriority(widgetIsSelected);
   }
 
-  d->Scheduler->raiseJobsPriorityForSeries(selectedSeriesInstanceUIDs);
+  d->Scheduler->raiseJobsPriorityForSeries(selectedSeriesInstanceUIDs);*/
 }
 
 //------------------------------------------------------------------------------
@@ -1222,12 +1213,12 @@ void ctkDICOMPatientItemWidget::onSeriesItemClicked()
       continue;
     }
 
-    QTableWidget* studySeriesTable = studyItemWidget->seriesListTableWidget();
+    /*QTableWidget* studySeriesTable = studyItemWidget->seriesListTableWidget();
     if (studySeriesTable == seriesTable)
     {
       continue;
     }
 
-    studySeriesTable->clearSelection();
+    studySeriesTable->clearSelection();*/
   }
 }

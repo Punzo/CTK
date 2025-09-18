@@ -29,8 +29,7 @@
 // Qt includes
 #include <QVariant>
 #include <QWidget>
-class QTableWidget;
-class QTableWidgetItem;
+#include <QModelIndex>
 
 // ctkWidgets includes
 class ctkCollapsibleGroupBox;
@@ -40,9 +39,10 @@ class ctkDICOMDatabase;
 class ctkDICOMScheduler;
 
 // ctkDICOMWidgets includes
-#include "ctkDICOMSeriesItemWidget.h"
 
-class ctkDICOMSeriesItemWidget;
+class ctkDICOMSeriesTableView;
+class ctkDICOMSeriesModel;
+class ctkDICOMSeriesDelegate;
 class ctkDICOMStudyItemWidgetPrivate;
 
 /// \ingroup DICOM_Widgets
@@ -173,24 +173,16 @@ public:
   /// (not Python-wrappable).
   void setDicomDatabase(QSharedPointer<ctkDICOMDatabase> dicomDatabase);
 
-  /// Series list table.
-  Q_INVOKABLE QTableWidget* seriesListTableWidget();
+  /// Series list view.
+  Q_INVOKABLE ctkDICOMSeriesTableView* seriesListTableView();
 
-  /// Return all the series item widgets for the study
-  Q_INVOKABLE QList<ctkDICOMSeriesItemWidget*> seriesItemWidgetsList() const;
+  /// Return the series model
+  Q_INVOKABLE ctkDICOMSeriesModel* seriesModel();
 
   ///@{
-  /// Add/Remove Series item widget
-  Q_INVOKABLE ctkDICOMSeriesItemWidget* addSeriesItemWidget(int tableIndex,
-                                                            const QString& seriesItem,
-                                                            const QString& seriesInstanceUID,
-                                                            const QString& modality,
-                                                            const QString& seriesDescription);
-  Q_INVOKABLE void removeSeriesItemWidget(const QString& seriesItem);
-  Q_INVOKABLE ctkDICOMSeriesItemWidget* seriesItemWidgetBySeriesItem(const QString& seriesItem);
-  Q_INVOKABLE ctkDICOMSeriesItemWidget* seriesItemWidgetBySeriesInstanceUID(const QString& seriesInstanceUID);
-  Q_INVOKABLE QList<QTableWidgetItem*> previousSelectedSeriesItems() const;
-  Q_INVOKABLE QList<QTableWidgetItem*> currentSelectedSeriesItems() const;
+  /// Selection methods
+  Q_INVOKABLE QModelIndexList previousSelectedSeries() const;
+  Q_INVOKABLE QModelIndexList currentSelectedSeries() const;
   ///@}
 
   /// Collapsible group box.
@@ -223,8 +215,7 @@ public Q_SLOTS:
   void onJobFinished(const QVariant&);
   void onStudySelectionClicked(bool);
   void onOperationStatusButtonClicked(bool);
-  void onSeriesListTableWidgetItemPressed(QTableWidgetItem *item = nullptr);
-  void onSeriesListTableWidgetSelectionChanged();
+  void onSeriesSelectionChanged();
 
 Q_SIGNALS:
   /// Emitted when the GUI finished to update after a series query.
