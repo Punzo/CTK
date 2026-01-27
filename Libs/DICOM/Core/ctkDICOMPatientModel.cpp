@@ -68,7 +68,7 @@ public:
 
   void init();
   void populatePatients();
-  void clean();
+  void clean(bool emitSignals = true);
   bool matchesPatientIDFilter(const QString& patientID) const;
   bool matchesPatientNameFilter(const QString& patientName) const;
   int getStudyCountForPatient(const QString& patientUID) const;
@@ -158,33 +158,41 @@ void ctkDICOMPatientModelPrivate::init()
 }
 
 //------------------------------------------------------------------------------
-void ctkDICOMPatientModelPrivate::clean()
+void ctkDICOMPatientModelPrivate::clean(bool emitSignals)
 {
   Q_Q(ctkDICOMPatientModel);
   this->IsUpdating = true;
 
-  // Clean up all study models first (which will clean series models)
-  foreach (ctkDICOMStudyModel* studyModel, this->StudyModels.values())
-  {
-    if (studyModel)
-    {
-      studyModel->clean();
-    }
-  }
-
   // Delete study models and proxy models
-  qDeleteAll(this->StudyModels.values());
+  for (QHash<QString, ctkDICOMStudyModel*>::iterator it = this->StudyModels.begin();
+       it != this->StudyModels.end(); ++it)
+  {
+    delete it.value();
+  }
   this->StudyModels.clear();
-  qDeleteAll(this->StudyFilterProxyModels.values());
+  for (QHash<QString, ctkDICOMStudyFilterProxyModel*>::iterator it = this->StudyFilterProxyModels.begin();
+       it != this->StudyFilterProxyModels.end(); ++it)
+  {
+    delete it.value();
+  }
   this->StudyFilterProxyModels.clear();
 
-  q->beginResetModel();
+  if (emitSignals)
+  {
+    q->beginResetModel();
+  }
   this->Patients.clear();
   this->PatientUIDToIndex.clear();
   this->PatientIDToIndex.clear();
-  q->endResetModel();
+  if (emitSignals)
+  {
+    q->endResetModel();
+  }
   this->IsUpdating = false;
-  emit q->modelRefreshed();
+  if (emitSignals)
+  {
+    emit q->modelRefreshed();
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -566,7 +574,10 @@ ctkDICOMPatientModel::ctkDICOMPatientModel(QObject* parent)
 }
 
 //------------------------------------------------------------------------------
-ctkDICOMPatientModel::~ctkDICOMPatientModel() = default;
+ctkDICOMPatientModel::~ctkDICOMPatientModel()
+{
+  this->clean(false);
+}
 
 //------------------------------------------------------------------------------
 int ctkDICOMPatientModel::rowCount(const QModelIndex& parent) const
@@ -931,8 +942,10 @@ void ctkDICOMPatientModel::setScheduler(ctkDICOMScheduler& scheduler)
   d->Scheduler = QSharedPointer<ctkDICOMScheduler>(&scheduler, skipDelete);
 
   // Update all existing study models
-  foreach (ctkDICOMStudyModel* studyModel, d->StudyModels.values())
+  for (QHash<QString, ctkDICOMStudyModel*>::iterator it = d->StudyModels.begin();
+       it != d->StudyModels.end(); ++it)
   {
+    ctkDICOMStudyModel* studyModel = it.value();
     if (studyModel)
     {
       studyModel->setScheduler(d->Scheduler);
@@ -947,8 +960,10 @@ void ctkDICOMPatientModel::setScheduler(QSharedPointer<ctkDICOMScheduler> schedu
   d->Scheduler = scheduler;
 
   // Update all existing study models
-  foreach (ctkDICOMStudyModel* studyModel, d->StudyModels.values())
+  for (QHash<QString, ctkDICOMStudyModel*>::iterator it = d->StudyModels.begin();
+       it != d->StudyModels.end(); ++it)
   {
+    ctkDICOMStudyModel* studyModel = it.value();
     if (studyModel)
     {
       studyModel->setScheduler(d->Scheduler);
@@ -1353,14 +1368,26 @@ void ctkDICOMPatientModel::removeStudyModel(const QString& patientUID)
 QList<ctkDICOMStudyModel*> ctkDICOMPatientModel::allStudyModels() const
 {
   Q_D(const ctkDICOMPatientModel);
-  return d->StudyModels.values();
+  QList<ctkDICOMStudyModel*> models;
+  for (QHash<QString, ctkDICOMStudyModel*>::const_iterator it = d->StudyModels.constBegin();
+       it != d->StudyModels.constEnd(); ++it)
+  {
+    models.append(it.value());
+  }
+  return models;
 }
 
 //------------------------------------------------------------------------------
 QList<ctkDICOMStudyFilterProxyModel*> ctkDICOMPatientModel::allStudyFilterProxyModels() const
 {
   Q_D(const ctkDICOMPatientModel);
-  return d->StudyFilterProxyModels.values();
+  QList<ctkDICOMStudyFilterProxyModel*> models;
+  for (QHash<QString, ctkDICOMStudyFilterProxyModel*>::const_iterator it = d->StudyFilterProxyModels.constBegin();
+       it != d->StudyFilterProxyModels.constEnd(); ++it)
+  {
+    models.append(it.value());
+  }
+  return models;
 }
 
 //------------------------------------------------------------------------------
@@ -1368,8 +1395,10 @@ void ctkDICOMPatientModel::updateStudyModelsFilters()
 {
   Q_D(ctkDICOMPatientModel);
 
-  foreach (ctkDICOMStudyModel* studyModel, d->StudyModels.values())
+  for (QHash<QString, ctkDICOMStudyModel*>::iterator it = d->StudyModels.begin();
+       it != d->StudyModels.end(); ++it)
   {
+    ctkDICOMStudyModel* studyModel = it.value();
     d->updateStudyModelFilters(studyModel);
   }
 }
@@ -1379,8 +1408,10 @@ void ctkDICOMPatientModel::refreshStudyModels()
 {
   Q_D(ctkDICOMPatientModel);
 
-  foreach (ctkDICOMStudyModel* studyModel, d->StudyModels.values())
+  for (QHash<QString, ctkDICOMStudyModel*>::iterator it = d->StudyModels.begin();
+       it != d->StudyModels.end(); ++it)
   {
+    ctkDICOMStudyModel* studyModel = it.value();
     studyModel->refreshStudies();
   }
 }
@@ -1390,8 +1421,10 @@ void ctkDICOMPatientModel::refreshSeriesModels()
 {
   Q_D(ctkDICOMPatientModel);
 
-  foreach (ctkDICOMStudyModel* studyModel, d->StudyModels.values())
+  for (QHash<QString, ctkDICOMStudyModel*>::iterator it = d->StudyModels.begin();
+       it != d->StudyModels.end(); ++it)
   {
+    ctkDICOMStudyModel* studyModel = it.value();
     studyModel->refreshSeriesModels();
   }
 }
@@ -1452,10 +1485,10 @@ void ctkDICOMPatientModel::refresh()
 }
 
 //------------------------------------------------------------------------------
-void ctkDICOMPatientModel::clean()
+void ctkDICOMPatientModel::clean(bool emitSignals)
 {
   Q_D(ctkDICOMPatientModel);
-  d->clean();
+  d->clean(emitSignals);
 }
 
 //------------------------------------------------------------------------------

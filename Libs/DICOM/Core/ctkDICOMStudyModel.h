@@ -237,7 +237,7 @@ public:
   Q_INVOKABLE void refresh();
 
   /// Clean the model and all child series models
-  Q_INVOKABLE void clean();
+  Q_INVOKABLE void clean(bool emitSignals = true);
 
   /// Force update of specific study
   Q_INVOKABLE void refreshStudies();

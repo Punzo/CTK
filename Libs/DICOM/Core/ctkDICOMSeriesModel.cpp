@@ -88,7 +88,7 @@ public:
 
   void populateSeriesData();
   void loadSeriesForStudy();
-  void clean();
+  void clean(bool emitSignals = true);
   void generateThumbnailForSeries(const QString& seriesInstanceUID);
   int findSeriesLinearIndex(const QString& seriesInstanceUID) const;
   bool seriesMatchesFilters(const ctkDICOMSeriesModelPrivate::SeriesData& series) const;
@@ -142,18 +142,27 @@ ctkDICOMSeriesModelPrivate::~ctkDICOMSeriesModelPrivate()
 }
 
 //----------------------------------------------------------------------------
-void ctkDICOMSeriesModelPrivate::clean()
+void ctkDICOMSeriesModelPrivate::clean(bool emitSignals)
 {
   Q_Q(ctkDICOMSeriesModel);
   this->IsUpdating = true;
 
   // Clear all series data
-  q->beginResetModel();
+  if (emitSignals)
+  {
+    q->beginResetModel();
+  }
   this->SeriesList.clear();
-  q->endResetModel();
+  if (emitSignals)
+  {
+    q->endResetModel();
+  }
 
   this->IsUpdating = false;
-  emit q->modelRefreshed();
+  if (emitSignals)
+  {
+    emit q->modelRefreshed();
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -578,6 +587,7 @@ ctkDICOMSeriesModel::ctkDICOMSeriesModel(QObject* parent)
 //----------------------------------------------------------------------------
 ctkDICOMSeriesModel::~ctkDICOMSeriesModel()
 {
+  this->clean(false);
 }
 
 //----------------------------------------------------------------------------
@@ -905,10 +915,10 @@ void ctkDICOMSeriesModel::refreshSeriesList()
 }
 
 //----------------------------------------------------------------------------
-void ctkDICOMSeriesModel::clean()
+void ctkDICOMSeriesModel::clean(bool emitSignals)
 {
   Q_D(ctkDICOMSeriesModel);
-  d->clean();
+  d->clean(emitSignals);
 }
 
 //----------------------------------------------------------------------------

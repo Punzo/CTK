@@ -192,7 +192,7 @@ public:
   Q_INVOKABLE void refreshSeries(const QString& seriesInstanceUID);
 
   /// Clean the model data
-  Q_INVOKABLE void clean();
+  Q_INVOKABLE void clean(bool emitSignals = true);
 
   /// Generate thumbnails for all visible series
   Q_INVOKABLE void generateThumbnails(bool regenerate = false);

@@ -240,7 +240,7 @@ public:
 
   /// Update model from database
   Q_INVOKABLE void refresh();
-  Q_INVOKABLE void clean();
+  Q_INVOKABLE void clean(bool emitSignals = true);
 
   /// Force update patient
   Q_INVOKABLE void refreshPatients();

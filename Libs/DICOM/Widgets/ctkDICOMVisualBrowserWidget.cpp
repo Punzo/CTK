@@ -1872,6 +1872,17 @@ ctkFileDialog* ctkDICOMVisualBrowserWidget::importDialog() const
 }
 
 //------------------------------------------------------------------------------
+void ctkDICOMVisualBrowserWidget::refreshBrowser()
+{
+  Q_D(ctkDICOMVisualBrowserWidget);
+  // Clean model first (this will clean all study models and series models as well)
+  d->PatientModel->clean();
+  // Then clean the view (this will clean study view and all series views as well)
+  d->PatientView->clean();
+  d->createPatients(false, QStringList(), true);
+}
+
+//------------------------------------------------------------------------------
 void ctkDICOMVisualBrowserWidget::setImportDirectoryMode(ImportDirectoryMode mode)
 {
   Q_D(ctkDICOMVisualBrowserWidget);
@@ -1986,11 +1997,7 @@ void ctkDICOMVisualBrowserWidget::setDatabaseDirectory(const QString& directory)
     settings.sync();
   }
 
-  // Clean model first (this will clean all study models and series models)
-  d->PatientModel->clean();
-  // Then clean the view (this will clean study view and all series views)
-  d->PatientView->clean();
-  d->createPatients();
+  this->refreshBrowser();
   emit databaseDirectoryChanged(absDirectory);
 }
 
@@ -2094,7 +2101,7 @@ void ctkDICOMVisualBrowserWidget::onIndexingComplete(int patientsAdded, int stud
   // allow users of this widget to know that the process has finished
   emit directoryImported();
 
-  d->createPatients(false, QStringList(), true);
+  this->refreshBrowser();
   d->setBackgroundColorToFilterWidgets();
 }
 
@@ -2835,7 +2842,6 @@ void ctkDICOMVisualBrowserWidget::onPatientViewDisplayModeChanged(ctkDICOMPatien
 //----------------------------------------------------------------------------
 void ctkDICOMVisualBrowserWidget::onStudyModelCreated(const QString& patientUID, ctkDICOMStudyModel* studyModel)
 {
-  Q_D(ctkDICOMVisualBrowserWidget);
   Q_UNUSED(patientUID);
   if (!studyModel)
   {
@@ -3807,8 +3813,6 @@ void ctkDICOMVisualBrowserWidget::removeSeries(const QStringList& seriesInstance
 
   QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
-  QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
-
   // Stop any running jobs for these series
   d->Scheduler->stopJobsByDICOMUIDs(QStringList(), QStringList(), seriesInstanceUIDs);
 
@@ -3876,8 +3880,6 @@ void ctkDICOMVisualBrowserWidget::removeSeries(const QStringList& seriesInstance
     d->DicomDatabase->removeSeries(seriesInstanceUID);
   }
   d->DicomDatabase->setLoadedSeriesInstanceUIDs(loadedSeriesInstanceUIDs);
-
-  QApplication::restoreOverrideCursor();
 
   // Refresh the affected series models and update their views' viewports
   foreach (const QString& studyUID, affectedSeriesModels.keys())

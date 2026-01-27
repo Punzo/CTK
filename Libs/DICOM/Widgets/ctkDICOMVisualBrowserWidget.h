@@ -310,6 +310,9 @@ public:
   /// \internal
   Q_INVOKABLE ctkFileDialog* importDialog() const;
 
+  /// \brief Refresh the browser after an operation that modifies the database (e.g. import, remove, etc.)
+  Q_INVOKABLE void refreshBrowser();
+
 public Q_SLOTS:
   /// \brief Set value of ImportDirectoryMode settings.
   ///

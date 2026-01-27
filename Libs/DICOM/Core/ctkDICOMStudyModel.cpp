@@ -74,7 +74,7 @@ public:
   QString getPatientUIDFromPatientID(const QString& patientID) const;
   void updateFilteredSeriesCounts();
   void updateStudyCountsAndVisibility(int studyIndex);
-  void clean();
+  void clean(bool emitSignals = true);
 
   // Data storage
   struct StudyData {
@@ -148,40 +148,56 @@ ctkDICOMStudyModelPrivate::ctkDICOMStudyModelPrivate(ctkDICOMStudyModel& obj)
 ctkDICOMStudyModelPrivate::~ctkDICOMStudyModelPrivate()
 {
   // Clean up series models
-  qDeleteAll(this->SeriesModels.values());
+  for (QHash<QString, ctkDICOMSeriesModel*>::iterator it = this->SeriesModels.begin();
+       it != this->SeriesModels.end(); ++it)
+  {
+    delete it.value();
+  }
   this->SeriesModels.clear();
-  qDeleteAll(this->SeriesFilterProxyModels.values());
+  for (QHash<QString, ctkDICOMSeriesFilterProxyModel*>::iterator it = this->SeriesFilterProxyModels.begin();
+       it != this->SeriesFilterProxyModels.end(); ++it)
+  {
+    delete it.value();
+  }
   this->SeriesFilterProxyModels.clear();
 }
 
 //------------------------------------------------------------------------------
-void ctkDICOMStudyModelPrivate::clean()
+void ctkDICOMStudyModelPrivate::clean(bool emitSignals)
 {
   Q_Q(ctkDICOMStudyModel);
   this->IsUpdating = true;
 
-  // Clean up all series models first
-  foreach (ctkDICOMSeriesModel* seriesModel, this->SeriesModels.values())
-  {
-    if (seriesModel)
-    {
-      seriesModel->clean();
-    }
-  }
-
   // Delete series models and proxy models
-  qDeleteAll(this->SeriesModels.values());
+  for (QHash<QString, ctkDICOMSeriesModel*>::iterator it = this->SeriesModels.begin();
+       it != this->SeriesModels.end(); ++it)
+  {
+    delete it.value();
+  }
   this->SeriesModels.clear();
-  qDeleteAll(this->SeriesFilterProxyModels.values());
+  for (QHash<QString, ctkDICOMSeriesFilterProxyModel*>::iterator it = this->SeriesFilterProxyModels.begin();
+       it != this->SeriesFilterProxyModels.end(); ++it)
+  {
+    delete it.value();
+  }
   this->SeriesFilterProxyModels.clear();
 
   // Clear the studies list
-  q->beginResetModel();
+  if (emitSignals)
+  {
+    q->beginResetModel();
+  }
   this->Studies.clear();
-  q->endResetModel();
+  if (emitSignals)
+  {
+    q->endResetModel();
+  }
 
   this->IsUpdating = false;
-  emit q->modelRefreshed();
+  if (emitSignals)
+  {
+    emit q->modelRefreshed();
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -208,9 +224,17 @@ void ctkDICOMStudyModelPrivate::populateStudies()
     if (!this->Studies.isEmpty())
     {
       q->beginResetModel();
-      qDeleteAll(this->SeriesModels.values());
+      for (QHash<QString, ctkDICOMSeriesModel*>::iterator it = this->SeriesModels.begin();
+           it != this->SeriesModels.end(); ++it)
+      {
+        delete it.value();
+      }
       this->SeriesModels.clear();
-      qDeleteAll(this->SeriesFilterProxyModels.values());
+      for (QHash<QString, ctkDICOMSeriesFilterProxyModel*>::iterator it = this->SeriesFilterProxyModels.begin();
+           it != this->SeriesFilterProxyModels.end(); ++it)
+      {
+        delete it.value();
+      }
       this->SeriesFilterProxyModels.clear();
       q->endResetModel();
     }
@@ -227,9 +251,17 @@ void ctkDICOMStudyModelPrivate::populateStudies()
     if (!this->Studies.isEmpty())
     {
       q->beginResetModel();
-      qDeleteAll(this->SeriesModels.values());
+      for (QHash<QString, ctkDICOMSeriesModel*>::iterator it = this->SeriesModels.begin();
+           it != this->SeriesModels.end(); ++it)
+      {
+        delete it.value();
+      }
       this->SeriesModels.clear();
-      qDeleteAll(this->SeriesFilterProxyModels.values());
+      for (QHash<QString, ctkDICOMSeriesFilterProxyModel*>::iterator it = this->SeriesFilterProxyModels.begin();
+           it != this->SeriesFilterProxyModels.end(); ++it)
+      {
+        delete it.value();
+      }
       this->SeriesFilterProxyModels.clear();
       q->endResetModel();
     }
@@ -633,6 +665,7 @@ ctkDICOMStudyModel::ctkDICOMStudyModel(QObject* parent)
 //------------------------------------------------------------------------------
 ctkDICOMStudyModel::~ctkDICOMStudyModel()
 {
+  this->clean(false);
 }
 
 //------------------------------------------------------------------------------
@@ -1223,8 +1256,10 @@ void ctkDICOMStudyModel::setAllowedServers(const QStringList& servers)
   d->AllowedServers = servers;
   emit allowedServersChanged(servers);
 
-  foreach (ctkDICOMSeriesModel* seriesModel, d->SeriesModels.values())
+  for (QHash<QString, ctkDICOMSeriesModel*>::iterator it = d->SeriesModels.begin();
+       it != d->SeriesModels.end(); ++it)
   {
+    ctkDICOMSeriesModel* seriesModel = it.value();
     if (seriesModel)
     {
       seriesModel->setAllowedServers(d->AllowedServers);
@@ -1273,8 +1308,10 @@ void ctkDICOMStudyModel::setThumbnailSize(int size)
   }
 
   d->ThumbnailSize = size;
-  foreach (ctkDICOMSeriesModel* seriesModel, d->SeriesModels.values())
+  for (QHash<QString, ctkDICOMSeriesModel*>::iterator it = d->SeriesModels.begin();
+       it != d->SeriesModels.end(); ++it)
   {
+    ctkDICOMSeriesModel* seriesModel = it.value();
     if (seriesModel)
     {
       seriesModel->setThumbnailSize(size);
@@ -1463,10 +1500,10 @@ void ctkDICOMStudyModel::refresh()
 }
 
 //------------------------------------------------------------------------------
-void ctkDICOMStudyModel::clean()
+void ctkDICOMStudyModel::clean(bool emitSignals)
 {
   Q_D(ctkDICOMStudyModel);
-  d->clean();
+  d->clean(emitSignals);
 }
 
 //------------------------------------------------------------------------------
@@ -1888,14 +1925,26 @@ void ctkDICOMStudyModel::removeSeriesModel(const QString& studyInstanceUID)
 QList<ctkDICOMSeriesModel*> ctkDICOMStudyModel::allSeriesModels() const
 {
   Q_D(const ctkDICOMStudyModel);
-  return d->SeriesModels.values();
+  QList<ctkDICOMSeriesModel*> models;
+  for (QHash<QString, ctkDICOMSeriesModel*>::const_iterator it = d->SeriesModels.constBegin();
+       it != d->SeriesModels.constEnd(); ++it)
+  {
+    models.append(it.value());
+  }
+  return models;
 }
 
 //------------------------------------------------------------------------------
 QList<ctkDICOMSeriesFilterProxyModel*> ctkDICOMStudyModel::allSeriesFilterProxyModels() const
 {
   Q_D(const ctkDICOMStudyModel);
-  return d->SeriesFilterProxyModels.values();
+  QList<ctkDICOMSeriesFilterProxyModel*> models;
+  for (QHash<QString, ctkDICOMSeriesFilterProxyModel*>::const_iterator it = d->SeriesFilterProxyModels.constBegin();
+       it != d->SeriesFilterProxyModels.constEnd(); ++it)
+  {
+    models.append(it.value());
+  }
+  return models;
 }
 
 //------------------------------------------------------------------------------
@@ -1904,8 +1953,10 @@ void ctkDICOMStudyModel::updateSeriesModelsFilters()
   Q_D(ctkDICOMStudyModel);
 
   // Update all existing series models with current filters
-  foreach (ctkDICOMSeriesModel* seriesModel, d->SeriesModels.values())
+  for (QHash<QString, ctkDICOMSeriesModel*>::iterator it = d->SeriesModels.begin();
+       it != d->SeriesModels.end(); ++it)
   {
+    ctkDICOMSeriesModel* seriesModel = it.value();
     if (seriesModel)
     {
       d->updateSeriesModelFilters(seriesModel);
@@ -1920,8 +1971,10 @@ void ctkDICOMStudyModel::refreshSeriesModels()
 {
   Q_D(ctkDICOMStudyModel);
 
-  foreach (ctkDICOMSeriesModel* seriesModel, d->SeriesModels.values())
+  for (QHash<QString, ctkDICOMSeriesModel*>::iterator it = d->SeriesModels.begin();
+       it != d->SeriesModels.end(); ++it)
   {
+    ctkDICOMSeriesModel* seriesModel = it.value();
     if (seriesModel)
     {
       seriesModel->refreshSeriesList();
