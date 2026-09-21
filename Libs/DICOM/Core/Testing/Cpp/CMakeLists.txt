@@ -9,6 +9,7 @@ create_test_sourcelist(Tests ${KIT}CppTests.cpp
   ctkDICOMDatabaseTest5.cpp
   ctkDICOMDatabaseTest6.cpp
   ctkDICOMDatabaseTest7.cpp
+  ctkDICOMDatabaseTest8.cpp
   ctkDICOMEchoTest1.cpp
   ctkDICOMItemTest1.cpp
   ctkDICOMIndexerTest1.cpp
@@ -22,6 +23,7 @@ create_test_sourcelist(Tests ${KIT}CppTests.cpp
   ctkDICOMQueryTest2.cpp
   ctkDICOMRetrieveTest1.cpp
   ctkDICOMRetrieveTest2.cpp
+  ctkDICOMRetrieveTest3.cpp
   ctkDICOMSchedulerTest1.cpp
   ctkDICOMSeriesFilterProxyModelTest1.cpp
   ctkDICOMSeriesModelTest1.cpp
@@ -65,6 +67,7 @@ SIMPLE_TEST(ctkDICOMDatabaseTest4 ${CTKData_DIR}/Data/DICOM/MRHEAD/000055.IMA)
 SIMPLE_TEST(ctkDICOMDatabaseTest5 ${CTKData_DIR}/Data/DICOM/MRHEAD/000055.IMA)
 SIMPLE_TEST(ctkDICOMDatabaseTest6 ${CTKData_DIR}/Data/DICOM/MRHEAD/000055.IMA)
 SIMPLE_TEST(ctkDICOMDatabaseTest7)
+SIMPLE_TEST(ctkDICOMDatabaseTest8)
 SIMPLE_TEST(ctkDICOMItemTest1)
 SIMPLE_TEST(ctkDICOMIndexerTest1 )
 
@@ -97,6 +100,7 @@ SIMPLE_TEST( ctkDICOMRetrieveTest2
   ${CTKData_DIR}/Data/DICOM/MRHEAD/000056.IMA
   )
 set_property(TEST "ctkDICOMRetrieveTest2" PROPERTY RESOURCE_LOCK "dcmqrscp")
+SIMPLE_TEST( ctkDICOMRetrieveTest3)
 
 # ctkDICOMCore
 SIMPLE_TEST( ctkDICOMCoreTest1
